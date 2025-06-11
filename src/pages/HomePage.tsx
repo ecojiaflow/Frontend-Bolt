@@ -5,41 +5,92 @@ import SearchBar from '../components/SearchBar';
 import ProductCard from '../components/ProductCard';
 import CategoryFilter from '../components/CategoryFilter';
 import ProductDetail from '../components/ProductDetail';
-import { Leaf } from 'lucide-react';
+import { Leaf, Loader2, AlertCircle } from 'lucide-react';
 import { Product, SearchFilters } from '../types';
-import { products, categories } from '../data/mockData';
+import { categories } from '../data/mockData';
+import { fetchRealProducts } from '../api/realApi';
 import { useTranslation, Trans } from 'react-i18next';
 
 const HomePage: React.FC = () => {
   const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState<SearchFilters>({});
-  const [filteredProducts, setFilteredProducts] = useState<Product[]>(products);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
+  // Chargement initial des produits
   useEffect(() => {
-    let result = products;
+    loadProducts();
+  }, []);
+
+  // Filtrage des produits
+  useEffect(() => {
+    let result = allProducts;
     
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       result = result.filter(
-        product =>
-          t(product.nameKey).toLowerCase().includes(query) ||
-          t(product.descriptionKey).toLowerCase().includes(query) ||
-          t(product.brandKey).toLowerCase().includes(query) ||
-          product.tagsKeys.some(tagKey => t(tagKey).toLowerCase().includes(query))
+        product => {
+          const name = (product.nameKey || '').toLowerCase();
+          const description = (product.descriptionKey || '').toLowerCase();
+          const brand = (product.brandKey || '').toLowerCase();
+          const tags = product.tagsKeys?.join(' ').toLowerCase() || '';
+          
+          return name.includes(query) || 
+                 description.includes(query) || 
+                 brand.includes(query) || 
+                 tags.includes(query);
+        }
       );
     }
     
     if (filters.category) {
       result = result.filter(product => product.category === filters.category);
     }
+
+    if (filters.minEthicalScore) {
+      result = result.filter(product => product.ethicalScore >= filters.minEthicalScore!);
+    }
+
+    if (filters.minAiConfidence) {
+      result = result.filter(product => 
+        product.aiConfidence && product.aiConfidence >= filters.minAiConfidence!
+      );
+    }
     
     setFilteredProducts(result);
-  }, [searchQuery, filters, t]);
+  }, [searchQuery, filters, allProducts]);
+
+  const loadProducts = async (query: string = '') => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      console.log('🔄 Chargement des produits...', query || 'tous');
+      const products = await fetchRealProducts(query);
+      
+      console.log('✅ Produits chargés:', products.length);
+      setAllProducts(products);
+      
+      if (products.length === 0) {
+        setError('Aucun produit trouvé. Utilisation des données de démonstration.');
+      }
+      
+    } catch (err) {
+      console.error('❌ Erreur lors du chargement:', err);
+      setError('Impossible de charger les produits. Utilisation des données de démonstration.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
+    // Optionnel: recharger depuis l'API pour une recherche plus précise
+    // loadProducts(query);
   };
 
   const handleCategorySelect = (categoryId: string | undefined) => {
@@ -47,7 +98,7 @@ const HomePage: React.FC = () => {
   };
 
   const handleProductClick = (productId: string) => {
-    const product = products.find(p => p.id === productId);
+    const product = allProducts.find(p => p.id === productId);
     if (product) {
       setSelectedProduct(product);
     }
@@ -55,6 +106,10 @@ const HomePage: React.FC = () => {
 
   const closeProductDetail = () => {
     setSelectedProduct(null);
+  };
+
+  const retryLoad = () => {
+    loadProducts();
   };
 
   return (
@@ -80,6 +135,32 @@ const HomePage: React.FC = () => {
             </p>
             
             <SearchBar onSearch={handleSearch} />
+
+            {/* Indicateur de connexion API */}
+            <div className="mt-6 flex justify-center">
+              {loading ? (
+                <div className="flex items-center text-eco-text/60 text-sm">
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Connexion à l'API Ecolojia...
+                </div>
+              ) : error ? (
+                <div className="flex items-center text-orange-600 text-sm">
+                  <AlertCircle className="w-4 h-4 mr-2" />
+                  {error}
+                  <button 
+                    onClick={retryLoad}
+                    className="ml-2 text-eco-leaf hover:text-eco-text underline"
+                  >
+                    Réessayer
+                  </button>
+                </div>
+              ) : (
+                <div className="text-green-600 text-sm flex items-center">
+                  <div className="w-2 h-2 bg-green-500 rounded-full mr-2 animate-pulse"></div>
+                  Connecté à l'API • {allProducts.length} produits chargés
+                </div>
+              )}
+            </div>
           </div>
         </section>
         
@@ -91,16 +172,26 @@ const HomePage: React.FC = () => {
               onSelectCategory={handleCategorySelect}
             />
             
-            {filteredProducts.length > 0 ? (
+            {loading ? (
+              <div className="mt-16 text-center">
+                <Loader2 className="w-8 h-8 mx-auto animate-spin text-eco-leaf mb-4" />
+                <p className="text-eco-text/70">Chargement des produits écoresponsables...</p>
+              </div>
+            ) : filteredProducts.length > 0 ? (
               <>
                 <div className="mt-8 mb-10">
                   <h2 className="text-2xl font-semibold text-eco-text">
                     {searchQuery 
-                      ? t('common.searchResults', { query: searchQuery })
+                      ? `Résultats pour "${searchQuery}"`
                       : t('common.ecoProducts')}
                   </h2>
                   <p className="text-eco-text/70 mt-2">
-                    {t('common.productsFound', { count: filteredProducts.length })}
+                    {filteredProducts.length} produit{filteredProducts.length > 1 ? 's' : ''} trouvé{filteredProducts.length > 1 ? 's' : ''}
+                    {allProducts.length > 0 && (
+                      <span className="ml-2 text-xs bg-eco-leaf/10 text-eco-leaf px-2 py-1 rounded-full">
+                        API connectée
+                      </span>
+                    )}
                   </p>
                 </div>
                 
@@ -117,7 +208,7 @@ const HomePage: React.FC = () => {
             ) : (
               <div className="text-center py-16">
                 <p className="text-eco-text/70 text-lg">
-                  {t('common.noResults')}
+                  {searchQuery ? 'Aucun résultat trouvé' : 'Aucun produit disponible'}
                 </p>
                 <button 
                   onClick={() => {
@@ -128,6 +219,14 @@ const HomePage: React.FC = () => {
                 >
                   {t('common.resetFilters')}
                 </button>
+                {error && (
+                  <button 
+                    onClick={retryLoad}
+                    className="ml-4 bg-eco-leaf text-white px-4 py-2 rounded-lg hover:bg-eco-text transition-colors"
+                  >
+                    Recharger les produits
+                  </button>
+                )}
               </div>
             )}
           </div>
@@ -146,16 +245,16 @@ const HomePage: React.FC = () => {
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               <FeatureCard 
-                title={t('homepage.whyUs.features.verified.title')}
-                description={t('homepage.whyUs.features.verified.description')}
+                title="Produits Vérifiés"
+                description="Tous nos produits sont soigneusement sélectionnés et vérifiés selon des critères éthiques et écologiques stricts."
               />
               <FeatureCard 
-                title={t('homepage.whyUs.features.rating.title')}
-                description={t('homepage.whyUs.features.rating.description')}
+                title="Notation Transparente"
+                description="Notre système de notation évalue chaque produit selon son impact environnemental, social et éthique."
               />
               <FeatureCard 
-                title={t('homepage.whyUs.features.search.title')}
-                description={t('homepage.whyUs.features.search.description')}
+                title="Recherche Intelligente"
+                description="Notre moteur de recherche vous aide à trouver rapidement des alternatives durables à vos produits habituels."
               />
             </div>
           </div>

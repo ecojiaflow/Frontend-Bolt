@@ -12,6 +12,9 @@ export interface Product {
   verified: boolean;
   affiliateLink: string;
   certificationsKeys: string[];
+  // Nouveaux champs pour l'IA
+  aiConfidence?: number;
+  zonesDisponibles?: string[];
 }
 
 export interface Category {
@@ -24,4 +27,7 @@ export interface SearchFilters {
   category?: string;
   minEthicalScore?: number;
   brand?: string;
+  // Nouveaux filtres
+  zone?: string;
+  minAiConfidence?: number;
 }

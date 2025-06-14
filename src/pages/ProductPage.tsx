@@ -43,7 +43,6 @@ const ProductPage: React.FC = () => {
     if (slug) fetchProduct();
   }, [slug]);
 
-  // Fonction pour afficher les étoiles du score écologique
   const renderEcoStars = (score: number) => {
     return Array.from({ length: 5 }, (_, i) => (
       <Star
@@ -91,7 +90,6 @@ const ProductPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <main className="max-w-6xl mx-auto px-4 py-8">
-        {/* Bouton retour */}
         <button
           onClick={() => navigate(-1)}
           className="mb-6 flex items-center gap-2 text-eco-leaf hover:text-eco-text transition-colors group"
@@ -101,7 +99,6 @@ const ProductPage: React.FC = () => {
         </button>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Image produit */}
           <div className="space-y-4">
             <div className="bg-white p-4 rounded-2xl shadow-sm border border-eco-leaf/10">
               <img
@@ -115,7 +112,6 @@ const ProductPage: React.FC = () => {
               />
             </div>
             
-            {/* Images supplémentaires si disponibles */}
             {product.images && product.images.length > 1 && (
               <div className="grid grid-cols-3 gap-2">
                 {product.images.slice(1, 4).map((img, index) => (
@@ -130,10 +126,8 @@ const ProductPage: React.FC = () => {
             )}
           </div>
 
-          {/* Informations produit */}
           <div className="space-y-6">
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-eco-leaf/10">
-              {/* En-tête avec titre et badge IA */}
               <div className="flex items-start justify-between mb-4">
                 <h1 className="text-2xl lg:text-3xl font-bold text-eco-text pr-4">
                   {product.title}
@@ -144,24 +138,21 @@ const ProductPage: React.FC = () => {
                 />
               </div>
 
-              {/* Description */}
               <p className="text-gray-600 leading-relaxed mb-6">
                 {product.description}
               </p>
 
-              {/* Résumé IA si disponible */}
               {product.resume_fr && (
                 <div className="bg-eco-leaf/5 border-l-4 border-eco-leaf p-4 rounded-r-lg mb-6">
-                  <h3 className="font-semibold text-eco-text mb-2">
-                    📝 Résumé IA
+                  <h3 className="font-semibold text-eco-text mb-2 flex items-center gap-2">
+                    🤖 Analyse IA
                   </h3>
-                  <p className="text-sm text-eco-text/80">
+                  <p className="text-sm text-eco-text/80 leading-relaxed">
                     {product.resume_fr}
                   </p>
                 </div>
               )}
 
-              {/* Score écologique */}
               <div className="mb-6">
                 <div className="flex items-center gap-3 mb-2">
                   <span className="font-semibold text-eco-text">Score écologique :</span>
@@ -174,7 +165,6 @@ const ProductPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Tags */}
               {product.tags && product.tags.length > 0 && (
                 <div className="mb-6">
                   <h3 className="font-semibold text-eco-text mb-3">🏷️ Caractéristiques</h3>
@@ -191,7 +181,6 @@ const ProductPage: React.FC = () => {
                 </div>
               )}
 
-              {/* Zones de disponibilité */}
               {product.zones_dispo && product.zones_dispo.length > 0 && (
                 <div className="mb-6">
                   <div className="flex items-center gap-2 mb-2">
@@ -211,7 +200,6 @@ const ProductPage: React.FC = () => {
                 </div>
               )}
 
-              {/* Statut de vérification */}
               {product.verified_status && (
                 <div className="mb-6">
                   <span className={`inline-flex items-center gap-1 text-sm px-3 py-1 rounded-full ${
@@ -224,7 +212,6 @@ const ProductPage: React.FC = () => {
                 </div>
               )}
 
-              {/* Bouton d'achat */}
               {product.affiliate_url && (
                 <div className="pt-4 border-t border-gray-100">
                   <a
@@ -245,7 +232,6 @@ const ProductPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Section critères détaillés si disponibles */}
         {product.criteria_score && Object.keys(product.criteria_score).length > 0 && (
           <div className="mt-8 bg-white p-6 rounded-2xl shadow-sm border border-eco-leaf/10">
             <h2 className="text-xl font-bold text-eco-text mb-4">📊 Détail des critères écologiques</h2>

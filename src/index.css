@@ -6,11 +6,13 @@
 
 body {
   font-family: 'Inter', sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 ::selection {
   background-color: #6BDF44;
   color: #1E3D2B;
+}
+
+html {
+  scroll-behavior: smooth;
 }

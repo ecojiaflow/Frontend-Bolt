@@ -1,164 +1,143 @@
 import React from 'react';
-import { Leaf, Mail, Heart, Shield } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import { Leaf, Heart } from 'lucide-react';
 
 const Footer: React.FC = () => {
   const { t } = useTranslation();
 
   return (
-    <footer className="bg-white border-t border-gray-200">
-      <div className="max-w-7xl mx-auto">
-        {/* Main Footer Content */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-12 p-12">
-          {/* Brand Section */}
-          <div>
-            <div className="flex items-center mb-6">
-              <Leaf className="h-6 w-6 text-eco-leaf" />
+    <footer className="bg-gray-50 border-t border-gray-200">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          
+          {/* Logo et description */}
+          <div className="lg:col-span-1">
+            <Link to="/" className="flex items-center mb-4 hover:opacity-80 transition-opacity">
+              <Leaf className="h-8 w-8 text-eco-leaf" />
               <span className="ml-2 text-xl font-semibold text-eco-text">ECOLOJIA</span>
-            </div>
-            <p className="text-eco-text/70 text-sm leading-relaxed mb-6">
+            </Link>
+            <p className="text-eco-text/70 text-sm leading-relaxed mb-4">
               {t('footer.description')}
             </p>
-            <div className="flex space-x-4">
-              <SocialLink platform="facebook" />
-              <SocialLink platform="twitter" />
-              <SocialLink platform="instagram" />
-              <SocialLink platform="linkedin" />
+            <div className="flex items-center space-x-4 text-eco-text/60">
+              <span className="text-xs">F</span>
+              <span className="text-xs">T</span>
+              <span className="text-xs">I</span>
+              <span className="text-xs">L</span>
             </div>
           </div>
 
-          {/* Quick Links */}
+          {/* Liens rapides */}
           <div>
-            <h3 className="text-sm font-semibold text-eco-text uppercase tracking-wider mb-4">
+            <h3 className="text-sm font-semibold text-eco-text mb-4 uppercase tracking-wider">
               {t('footer.quickLinks')}
             </h3>
-            <ul className="space-y-3">
-              <FooterLink text={t('common.home')} />
-              <FooterLink text={t('common.products')} />
-              <FooterLink text={t('common.categories')} />
-              <FooterLink text={t('common.about')} />
-              <FooterLink text={t('common.blog')} />
-            </ul>
+            <div className="space-y-3">
+              <Link to="/" className="block text-eco-text/70 hover:text-eco-leaf transition-colors text-sm">
+                {t('common.home')}
+              </Link>
+              <span className="block text-gray-400 text-sm cursor-not-allowed">
+                {t('common.products')}
+              </span>
+              <span className="block text-gray-400 text-sm cursor-not-allowed">
+                {t('common.categories')}
+              </span>
+              <Link to="/about" className="block text-eco-text/70 hover:text-eco-leaf transition-colors text-sm">
+                {t('common.about')}
+              </Link>
+              <span className="block text-gray-400 text-sm cursor-not-allowed">
+                {t('common.blog')}
+              </span>
+            </div>
           </div>
 
-          {/* Legal Links */}
+          {/* Mentions légales */}
           <div>
-            <h3 className="text-sm font-semibold text-eco-text uppercase tracking-wider mb-4">
+            <h3 className="text-sm font-semibold text-eco-text mb-4 uppercase tracking-wider">
               {t('footer.legal')}
             </h3>
-            <ul className="space-y-3">
-              <FooterLink text={t('footer.terms')} />
-              <FooterLink text={t('footer.privacy')} />
-              <FooterLink text={t('footer.cookies')} />
-              <FooterLink text={t('footer.legalNotice')} />
-            </ul>
+            <div className="space-y-3">
+              <Link to="/terms" className="block text-eco-text/70 hover:text-eco-leaf transition-colors text-sm">
+                {t('footer.terms')}
+              </Link>
+              <Link to="/privacy" className="block text-eco-text/70 hover:text-eco-leaf transition-colors text-sm">
+                {t('footer.privacy')}
+              </Link>
+              <span className="block text-gray-400 text-sm cursor-not-allowed">
+                {t('footer.cookies')}
+              </span>
+              <Link to="/legal" className="block text-eco-text/70 hover:text-eco-leaf transition-colors text-sm">
+                {t('footer.legalNotice')}
+              </Link>
+            </div>
           </div>
 
           {/* Newsletter */}
           <div>
-            <h3 className="text-sm font-semibold text-eco-text uppercase tracking-wider mb-4">
+            <h3 className="text-sm font-semibold text-eco-text mb-4 uppercase tracking-wider">
               {t('footer.newsletter')}
             </h3>
-            <p className="text-sm text-eco-text/70 mb-4">
+            <p className="text-eco-text/70 text-sm mb-4">
               {t('footer.newsletterDescription')}
             </p>
-            <form className="space-y-2">
-              <div className="flex">
-                <input
-                  type="email"
-                  placeholder={t('footer.emailPlaceholder')}
-                  className="flex-1 px-4 py-2 rounded-l-full border border-gray-200 focus:outline-none focus:ring-2 focus:ring-eco-leaf/30 focus:border-eco-leaf/50"
-                />
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-eco-leaf text-white rounded-r-full hover:bg-eco-text transition-colors"
-                  aria-label={t('footer.subscribe')}
-                >
-                  <Mail size={20} />
-                </button>
-              </div>
-              <p className="text-xs text-eco-text/50">
-                {t('footer.gdprConsent')}
-              </p>
-            </form>
+            <div className="flex">
+              <input
+                type="email"
+                placeholder={t('footer.emailPlaceholder')}
+                className="flex-1 px-3 py-2 border border-gray-300 rounded-l-lg text-sm focus:outline-none focus:ring-2 focus:ring-eco-leaf/30 focus:border-eco-leaf"
+              />
+              <button className="px-4 py-2 bg-eco-leaf text-white rounded-r-lg hover:bg-eco-leaf/90 transition-colors">
+                <span className="text-sm">📧</span>
+              </button>
+            </div>
+            <p className="text-xs text-eco-text/50 mt-2">
+              {t('footer.gdprConsent')}{' '}
+              <Link to="/privacy" className="text-eco-leaf hover:underline">
+                {t('footer.privacy')}
+              </Link>.
+            </p>
           </div>
         </div>
 
         {/* Certifications */}
-        <div className="border-t border-gray-200 py-8 px-12">
-          <h3 className="text-sm font-semibold text-eco-text mb-6 flex items-center">
-            <Shield size={16} className="mr-2" />
-            {t('footer.certifications')}
-          </h3>
-          <div className="flex flex-wrap gap-4">
-            <CertificationBadge name="AB Agriculture Biologique" />
-            <CertificationBadge name="Ecocert" />
-            <CertificationBadge name="FSC" />
-            <CertificationBadge name="Cruelty Free" />
-            <CertificationBadge name="1% for the Planet" />
+        <div className="border-t border-gray-200 mt-8 pt-8">
+          <div className="flex items-center mb-4">
+            <span className="text-sm font-medium text-eco-text mr-4">🏆 {t('footer.certifications')}</span>
+          </div>
+          <div className="flex flex-wrap gap-3 mb-6">
+            <span className="px-3 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full border border-yellow-200">
+              AB Agriculture Biologique
+            </span>
+            <span className="px-3 py-1 bg-green-100 text-green-800 text-xs rounded-full border border-green-200">
+              Ecocert
+            </span>
+            <span className="px-3 py-1 bg-blue-100 text-blue-800 text-xs rounded-full border border-blue-200">
+              FSC
+            </span>
+            <span className="px-3 py-1 bg-purple-100 text-purple-800 text-xs rounded-full border border-purple-200">
+              Cruelty Free
+            </span>
+            <span className="px-3 py-1 bg-eco-leaf/10 text-eco-leaf text-xs rounded-full border border-eco-leaf/20">
+              1% for the Planet
+            </span>
           </div>
         </div>
 
         {/* Copyright */}
-        <div className="border-t border-gray-200 py-6 px-12 flex flex-col sm:flex-row justify-between items-center">
-          <p className="text-sm text-eco-text/70">
-            &copy; {new Date().getFullYear()} Ecolojia. {t('footer.allRights')}
-          </p>
-          <p className="text-sm text-eco-text/70 mt-2 sm:mt-0 flex items-center">
-            <Heart size={14} className="text-eco-leaf mr-1" />
-            {t('footer.madeWith')}
-          </p>
+        <div className="border-t border-gray-200 pt-6">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <p className="text-eco-text/60 text-sm">
+              © 2025 Ecolojia. {t('footer.allRights')}
+            </p>
+            <div className="flex items-center mt-4 md:mt-0">
+              <Heart className="h-4 w-4 text-red-500 mr-1" />
+              <span className="text-eco-text/60 text-sm">{t('footer.madeWith')}</span>
+            </div>
+          </div>
         </div>
       </div>
     </footer>
-  );
-};
-
-interface FooterLinkProps {
-  text: string;
-}
-
-const FooterLink: React.FC<FooterLinkProps> = ({ text }) => {
-  return (
-    <li>
-      <a
-        href="#"
-        className="text-eco-text/70 hover:text-eco-leaf text-sm transition-colors"
-      >
-        {text}
-      </a>
-    </li>
-  );
-};
-
-interface SocialLinkProps {
-  platform: string;
-}
-
-const SocialLink: React.FC<SocialLinkProps> = ({ platform }) => {
-  const { t } = useTranslation();
-  
-  return (
-    <a
-      href="#"
-      className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center text-eco-text/70 hover:text-eco-leaf hover:border-eco-leaf transition-colors"
-      aria-label={t('footer.followUs', { platform })}
-    >
-      <span className="sr-only">{platform}</span>
-      <span className="text-sm capitalize">{platform.charAt(0)}</span>
-    </a>
-  );
-};
-
-interface CertificationBadgeProps {
-  name: string;
-}
-
-const CertificationBadge: React.FC<CertificationBadgeProps> = ({ name }) => {
-  return (
-    <div className="px-4 py-2 bg-eco-glow/10 rounded-full text-xs text-eco-olive font-medium">
-      {name}
-    </div>
   );
 };
 

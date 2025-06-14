@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
-import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 
 type Product = {
@@ -46,10 +45,12 @@ const ProductPage: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
-      <Navbar />
       <main className="flex-grow">
         <div className="max-w-5xl mx-auto px-4 py-8">
-          <button onClick={() => navigate(-1)} className="mb-4 flex items-center gap-2 text-eco-leaf hover:underline">
+          <button
+            onClick={() => navigate(-1)}
+            className="mb-4 flex items-center gap-2 text-eco-leaf hover:underline"
+          >
             <ArrowLeft className="h-4 w-4" />
             Retour
           </button>

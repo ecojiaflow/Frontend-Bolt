@@ -24,17 +24,50 @@ interface ProductHitProps {
 }
 
 const ProductHit: React.FC<ProductHitProps> = ({ hit }) => {
-  // 🔧 FIX: Sécuriser le slug avec fallback robuste
-  const productSlug = hit.slug && hit.slug !== 'undefined' && hit.slug.trim() !== '' 
-    ? hit.slug 
-    : hit.objectID || 'product-' + Date.now();
-  
-  console.log('🔍 ProductHit Debug:', {
-    objectID: hit.objectID,
-    slug: hit.slug,
-    finalSlug: productSlug,
-    title: hit.title
-  });
+  // 🔧 FIX PRODUCTION: Validation ultra-robuste du slug
+  const validateSlug = (slug: any, objectID: any, title: any): string => {
+    // Nettoyer et valider chaque paramètre
+    const cleanSlug = typeof slug === 'string' ? slug.trim() : '';
+    const cleanObjectID = typeof objectID === 'string' ? objectID.trim() : '';
+    const cleanTitle = typeof title === 'string' ? title.trim() : '';
+    
+    // Debug en développement seulement
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🔍 ProductHit Debug:', {
+        originalSlug: slug,
+        cleanSlug,
+        objectID: cleanObjectID,
+        title: cleanTitle
+      });
+    }
+    
+    // Priorité 1: Slug valide et non-undefined
+    if (cleanSlug && cleanSlug !== 'undefined' && cleanSlug.length > 0) {
+      return cleanSlug;
+    }
+    
+    // Priorité 2: ObjectID valide
+    if (cleanObjectID && cleanObjectID !== 'undefined' && cleanObjectID.length > 0) {
+      return cleanObjectID;
+    }
+    
+    // Priorité 3: Slugifier le titre
+    if (cleanTitle && cleanTitle.length > 0) {
+      return cleanTitle
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '') // Supprimer accents
+        .replace(/[^a-z0-9\s-]/g, '') // Garder seulement lettres, chiffres, espaces, tirets
+        .replace(/\s+/g, '-') // Espaces -> tirets
+        .replace(/-+/g, '-') // Tirets multiples -> un seul
+        .replace(/^-|-$/g, ''); // Supprimer tirets début/fin
+    }
+    
+    // Dernier recours: générer un slug unique
+    return `product-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  };
+
+  const productSlug = validateSlug(hit.slug, hit.objectID, hit.title);
   
   const imageUrl = hit.images?.[0] || 'https://images.pexels.com/photos/4820813/pexels-photo-4820813.jpeg';
   
@@ -68,20 +101,33 @@ const ProductHit: React.FC<ProductHitProps> = ({ hit }) => {
   // Prix par défaut
   const price = hit.price || 15.99;
 
-  // 🔧 FIX: Vérifier que le slug est valide avant navigation
-  if (!productSlug || productSlug === 'undefined' || productSlug.trim() === '') {
-    console.error('❌ ProductHit: Slug invalide pour produit', hit);
+  // 🔧 VALIDATION FINALE: Slug absolument requis
+  if (!productSlug || productSlug === 'undefined' || productSlug.trim() === '' || productSlug.length === 0) {
+    console.error('❌ ProductHit: Impossible de générer un slug valide', {
+      slug: hit.slug,
+      objectID: hit.objectID,
+      title: hit.title,
+      finalSlug: productSlug
+    });
+    
     return (
       <div className="block bg-red-50 border-2 border-red-200 rounded-xl p-4">
         <p className="text-red-600 text-sm font-medium">
           ⚠️ Produit avec données incomplètes
         </p>
         <p className="text-xs text-gray-500 mt-1">
-          ID: {hit.objectID} | Titre: {hit.title}
+          Titre: {hit.title || 'Non défini'}
         </p>
-        <p className="text-xs text-gray-400 mt-1">
-          Slug: "{hit.slug}" | Final: "{productSlug}"
-        </p>
+        {process.env.NODE_ENV === 'development' && (
+          <>
+            <p className="text-xs text-gray-400 mt-1">
+              ID: {hit.objectID || 'undefined'}
+            </p>
+            <p className="text-xs text-gray-400">
+              Slug original: "{hit.slug || 'undefined'}"
+            </p>
+          </>
+        )}
       </div>
     );
   }
@@ -95,7 +141,7 @@ const ProductHit: React.FC<ProductHitProps> = ({ hit }) => {
       <div className="relative aspect-square overflow-hidden">
         <img
           src={imageUrl}
-          alt={hit.title}
+          alt={hit.title || 'Produit éco-responsable'}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           onError={(e) => {
             (e.target as HTMLImageElement).src = 'https://images.pexels.com/photos/4820813/pexels-photo-4820813.jpeg';
@@ -131,7 +177,7 @@ const ProductHit: React.FC<ProductHitProps> = ({ hit }) => {
           {hit._highlightResult?.title ? (
             <span dangerouslySetInnerHTML={{ __html: hit._highlightResult.title.value }} />
           ) : (
-            hit.title
+            hit.title || 'Produit éco-responsable'
           )}
         </h3>
 
@@ -147,11 +193,11 @@ const ProductHit: React.FC<ProductHitProps> = ({ hit }) => {
         )}
 
         {/* Tags */}
-        {hit.tags && hit.tags.length > 0 && (
+        {hit.tags && Array.isArray(hit.tags) && hit.tags.length > 0 && (
           <div className="flex flex-wrap gap-1">
             {hit.tags.slice(0, 3).map((tag, index) => (
               <span
-                key={index}
+                key={`tag-${index}-${tag}`}
                 className="bg-green-50 text-green-700 px-2 py-1 rounded text-xs font-medium"
               >
                 {tag}
@@ -178,7 +224,7 @@ const ProductHit: React.FC<ProductHitProps> = ({ hit }) => {
             </div>
 
             {/* Zone de disponibilité */}
-            {hit.zones_dispo && hit.zones_dispo.includes('FR') && (
+            {hit.zones_dispo && Array.isArray(hit.zones_dispo) && hit.zones_dispo.includes('FR') && (
               <span className="bg-blue-50 text-blue-700 px-2 py-1 rounded text-xs font-medium">
                 🇫🇷 FR
               </span>

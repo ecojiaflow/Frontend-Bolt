@@ -10,6 +10,7 @@ import { fetchRealProducts } from '../api/realApi';
 import { Product } from '../types';
 import { SEOHead } from '../components/SEOHead';
 import { useSEO } from '../hooks/useSEO';
+import { usePerformanceMonitoring } from '../utils/performance';
 
 // Composant NoResultsFound
 const NoResultsFound: React.FC<{ query: string; onEnrichRequest: (query: string) => void }> = ({ query, onEnrichRequest }) => {
@@ -36,6 +37,7 @@ const HomePage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { recordSearch } = usePerformanceMonitoring();
   
   // États de recherche
   const [allResults, setAllResults] = useState<Product[]>([]);
@@ -121,6 +123,9 @@ const HomePage: React.FC = () => {
         nbHits: results.length, 
         processingTimeMS: processingTime 
       });
+
+      // Enregistrer les métriques de performance
+      recordSearch('', results.length, processingTime);
     } catch (error) {
       console.error('Erreur chargement initial:', error);
       setAllResults([]);
@@ -155,6 +160,9 @@ const HomePage: React.FC = () => {
         nbHits: results.length, 
         processingTimeMS: processingTime 
       });
+
+      // Enregistrer les métriques de performance
+      recordSearch(searchQuery, results.length, processingTime);
       
     } catch (error) {
       console.error('Erreur recherche:', error);
@@ -292,11 +300,15 @@ const HomePage: React.FC = () => {
           </div>
           
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-eco-text mb-6">
-            <span className="text-eco-leaf">Trouvez</span> des produits <span className="text-eco-leaf">éco-responsables</span>
+            {t('homepage.hero.title') === 'Find <highlight>eco-friendly</highlight> products' ? (
+              <>Find <span className="text-eco-leaf">eco-friendly</span> products</>
+            ) : (
+              <><span className="text-eco-leaf">Trouvez</span> des produits <span className="text-eco-leaf">éco-responsables</span></>
+            )}
           </h1>
           
           <p className="text-lg md:text-xl text-eco-text/80 max-w-3xl mx-auto mb-12">
-            Découvrez des milliers de produits éthiques et durables pour un mode de vie plus respectueux de la planète.
+            {t('homepage.hero.subtitle')}
           </p>
 
           {/* Barre de recherche */}
@@ -306,7 +318,7 @@ const HomePage: React.FC = () => {
                 type="text"
                 value={currentQuery}
                 onChange={handleInputChange}
-                placeholder="Rechercher shampoing bio, jean éthique, miel local..."
+                placeholder={t('common.searchPlaceholder') || 'Rechercher shampoing bio, jean éthique, miel local...'}
                 className="w-full py-4 px-12 pr-16 border-2 border-eco-text/10 rounded-full shadow-lg focus:outline-none focus:ring-2 focus:ring-eco-leaf/30 focus:border-eco-leaf/50 transition-all text-eco-text placeholder-eco-text/50 bg-white/95 backdrop-blur"
                 autoComplete="off"
               />
@@ -330,7 +342,7 @@ const HomePage: React.FC = () => {
               )}
             </div>
 
-            {/* Indicateurs de recherche - CORRIGÉ */}
+            {/* Indicateurs de recherche */}
             {currentQuery && currentQuery.length >= 2 && (
               <div className="mt-4 flex justify-center">
                 <div className="inline-flex items-center gap-2 text-sm text-eco-leaf bg-eco-leaf/10 px-3 py-1 rounded-full">
@@ -354,7 +366,7 @@ const HomePage: React.FC = () => {
             )}
           </form>
 
-          {/* Stats de recherche - CORRIGÉ */}
+          {/* Stats de recherche */}
           {hasSearched && searchStats.nbHits > 0 && (
             <div className="text-eco-text/60 text-sm">
               {searchStats.nbHits === 1 
@@ -370,7 +382,7 @@ const HomePage: React.FC = () => {
       <section id="results-section" className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           
-          {/* Header des résultats - CORRIGÉ */}
+          {/* Header des résultats */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
             <div>
               <h2 className="text-3xl font-bold text-eco-text mb-2">

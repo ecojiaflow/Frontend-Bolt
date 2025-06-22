@@ -576,6 +576,7 @@ const HomePage: React.FC = () => {
               }>
                 {searchResults.map((product, index) => {
 <<<<<<< HEAD
+<<<<<<< HEAD
                   // 🚨 VALIDATION ULTRA-STRICTE - NE JAMAIS RENDRE SI PROBLÉMATIQUE
                   if (!product || !product.id) {
                     return null; // Skip complètement
@@ -623,36 +624,90 @@ const HomePage: React.FC = () => {
                   console.warn('⚠️ Produit invalide ignoré:', product);
                   return null;
                 }
+=======
+                  // 🔧 FIX CRITIQUE: Validation stricte des données produit
+                  if (!product || !product.id) {
+                    console.warn('⚠️ Produit invalide ignoré:', product);
+                    return null;
+                  }
+>>>>>>> 6fa9476 (🔧 fix: Ultra-secure slug validation to prevent undefined URLs)
 
-                // Adapter Product vers le format attendu par ProductHit avec validation
-                const adaptedHit = {
-                  objectID: product.id,
-                  title: product.nameKey || product.title || 'Produit éco-responsable',
-                  description: product.descriptionKey || product.description || '',
-                  slug: product.slug || product.id, // 🔧 FIX: Utiliser ID si pas de slug
-                  images: Array.isArray(product.images) ? product.images : 
-                           (product.image ? [product.image] : []),
-                  eco_score: typeof product.ethicalScore === 'number' ? 
-                            Math.min(Math.max(product.ethicalScore / 5, 0), 1) : 0, // Normaliser 0-1
-                  ai_confidence: typeof product.aiConfidence === 'number' ? 
-                                Math.min(Math.max(product.aiConfidence, 0), 1) : 0,
-                  confidence_pct: typeof product.confidencePct === 'number' ? 
-                                 Math.min(Math.max(product.confidencePct, 0), 100) : 0,
-                  confidence_color: product.confidenceColor || 'gray',
-                  tags: Array.isArray(product.tagsKeys) ? product.tagsKeys : 
-                        Array.isArray(product.tags) ? product.tags : [],
-                  zones_dispo: Array.isArray(product.zonesDisponibles) ? product.zonesDisponibles : [],
-                  verified_status: product.verifiedStatus || 'unknown',
-                  brand: product.brandKey || product.brand || '',
-                  price: typeof product.price === 'number' ? product.price : 15.99
-                };
+                  // Adapter Product vers le format attendu par ProductHit avec validation ultra-stricte
+                  const adaptedHit = {
+                    objectID: product.id,
+                    title: product.nameKey || product.title || 'Produit éco-responsable',
+                    description: product.descriptionKey || product.description || '',
+                    
+                    // 🚨 FIX CRITIQUE: Validation ultra-stricte du slug
+                    slug: (() => {
+                      console.log('🔧 Debug slug pour produit:', {
+                        id: product.id,
+                        slug: product.slug,
+                        title: product.nameKey || product.title
+                      });
+                      
+                      // 1. Vérifier le slug existant
+                      if (product.slug && 
+                          typeof product.slug === 'string' && 
+                          product.slug.trim() !== '' && 
+                          product.slug !== 'undefined' && 
+                          product.slug !== 'null') {
+                        console.log('✅ Slug valide trouvé:', product.slug);
+                        return product.slug;
+                      }
+                      
+                      // 2. Générer depuis le titre
+                      const title = product.nameKey || product.title || '';
+                      if (title && typeof title === 'string') {
+                        const generatedSlug = title
+                          .toLowerCase()
+                          .normalize('NFD')
+                          .replace(/[\u0300-\u036f]/g, '') // Supprimer accents
+                          .replace(/[^a-z0-9\s-]/g, '')   // Garder alphanumériques
+                          .replace(/\s+/g, '-')           // Espaces → tirets
+                          .replace(/-+/g, '-')            // Tirets multiples → simple
+                          .replace(/^-|-$/g, '');         // Supprimer tirets début/fin
+                        
+                        if (generatedSlug && generatedSlug !== 'undefined') {
+                          console.log('✅ Slug généré depuis titre:', generatedSlug);
+                          return generatedSlug;
+                        }
+                      }
+                      
+                      // 3. Fallback avec ID
+                      const fallbackSlug = `product-${product.id}`;
+                      console.log('⚠️ Utilisation fallback slug:', fallbackSlug);
+                      return fallbackSlug;
+                    })(),
+                    
+                    images: Array.isArray(product.images) ? product.images : 
+                             (product.image ? [product.image] : []),
+                    eco_score: typeof product.ethicalScore === 'number' ? 
+                              Math.min(Math.max(product.ethicalScore / 5, 0), 1) : 0, // Normaliser 0-1
+                    ai_confidence: typeof product.aiConfidence === 'number' ? 
+                                  Math.min(Math.max(product.aiConfidence, 0), 1) : 0,
+                    confidence_pct: typeof product.confidencePct === 'number' ? 
+                                   Math.min(Math.max(product.confidencePct, 0), 100) : 0,
+                    confidence_color: product.confidenceColor || 'gray',
+                    tags: Array.isArray(product.tagsKeys) ? product.tagsKeys : 
+                          Array.isArray(product.tags) ? product.tags : [],
+                    zones_dispo: Array.isArray(product.zonesDisponibles) ? product.zonesDisponibles : [],
+                    verified_status: product.verifiedStatus || 'unknown',
+                    brand: product.brandKey || product.brand || '',
+                    price: typeof product.price === 'number' ? product.price : 15.99
+                  };
 
-                // 🔧 VALIDATION FINALE: S'assurer qu'on a les données minimales
-                if (!adaptedHit.title || !adaptedHit.slug) {
-                  console.warn('⚠️ Produit sans titre/slug ignoré:', adaptedHit);
-                  return null;
-                }
+                  // 🔧 VALIDATION FINALE: S'assurer qu'on a les données minimales
+                  if (!adaptedHit.title || !adaptedHit.slug || adaptedHit.slug === 'undefined') {
+                    console.warn('⚠️ Produit sans titre/slug valide ignoré:', {
+                      title: adaptedHit.title,
+                      slug: adaptedHit.slug,
+                      originalProduct: product
+                    });
+                    return null;
+                  }
 
+<<<<<<< HEAD
                 return (
                   <div 
                     key={`product-${product.id}-${index}`}
@@ -667,6 +722,27 @@ const HomePage: React.FC = () => {
                 );
               }).filter(Boolean)}
 >>>>>>> ef19aef (🔧 fix: Secure product mapping to prevent undefined slugs in production)
+=======
+                  console.log('✅ Produit adapté avec succès:', {
+                    id: adaptedHit.objectID,
+                    title: adaptedHit.title,
+                    slug: adaptedHit.slug
+                  });
+
+                  return (
+                    <div 
+                      key={`product-${product.id}-${index}`}
+                      className="animate-fade-in-up"
+                      style={{ 
+                        animationDelay: `${index * 50}ms`,
+                        animationFillMode: 'both'
+                      }}
+                    >
+                      <ProductHit hit={adaptedHit} />
+                    </div>
+                  );
+                }).filter(Boolean)}
+>>>>>>> 6fa9476 (🔧 fix: Ultra-secure slug validation to prevent undefined URLs)
               </div>
 
               {/* Pagination */}

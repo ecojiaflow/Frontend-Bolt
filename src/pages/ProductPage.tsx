@@ -78,17 +78,41 @@ const ProductPage: React.FC = () => {
   const [shareMessage, setShareMessage] = useState('');
 
   useEffect(() => {
+    // 🚨 VALIDATION ULTRA-STRICTE DU SLUG EN PREMIER
+    console.log('🔍 ProductPage - Raw params:', { slug });
+    
     if (!slug) {
+      console.error('🚨 ERREUR: Aucun slug fourni');
       setError("Slug manquant");
       setLoading(false);
       return;
     }
 
+    // 🚨 VALIDATION CRITIQUE: Vérifier les valeurs invalides
+    if (slug === 'undefined' || slug === 'null' || slug.trim() === '') {
+      console.error('🚨 ERREUR: Slug invalide détecté:', slug);
+      setError('Produit introuvable - identifiant invalide');
+      setLoading(false);
+      return;
+    }
+
+    // 🚨 REDIRECTION IMMÉDIATE SI SLUG CONTIENT 'undefined'
+    if (slug.includes('undefined') || slug === 'not-found') {
+      console.error('🚨 Redirection: Slug contient undefined, retour accueil');
+      navigate('/', { replace: true });
+      return;
+    }
+
+    console.log('✅ ProductPage - Slug valide, chargement:', slug);
+
     const controller = new AbortController();
 
     const fetchProduct = async () => {
       try {
+        // 🔧 CONSTRUCTION SÉCURISÉE DE L'URL
         const finalUrl = `${API_BASE_URL}/api/products/${encodeURIComponent(slug)}`;
+        console.log('🔍 URL finale construite:', finalUrl);
+        
         const response = await fetch(finalUrl, { signal: controller.signal });
 
         if (!response.ok) {
@@ -104,6 +128,7 @@ const ProductPage: React.FC = () => {
           ai_confidence: typeof rawProduct.ai_confidence === "string" ? parseFloat(rawProduct.ai_confidence) : rawProduct.ai_confidence
         };
 
+        console.log('✅ Produit chargé avec succès:', normalized.title);
         setProduct(normalized);
         
         // ✅ Vérifier favoris
@@ -112,6 +137,7 @@ const ProductPage: React.FC = () => {
         
       } catch (err) {
         if (err instanceof DOMException && err.name === "AbortError") return;
+        console.error('❌ Erreur chargement produit:', err);
         setError(err instanceof Error ? err.message : "Erreur lors du chargement");
       } finally {
         setLoading(false);
@@ -120,7 +146,7 @@ const ProductPage: React.FC = () => {
 
     fetchProduct();
     return () => controller.abort();
-  }, [slug]);
+  }, [slug, navigate]);
 
   // ✅ NOUVELLES FONCTIONS
   const toggleFavorite = () => {

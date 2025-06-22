@@ -538,37 +538,54 @@ const HomePage: React.FC = () => {
                   : "space-y-4"
               }>
                 {searchResults.map((product, index) => {
-                  // Adapter Product vers le format attendu par ProductHit
-                  const adaptedHit = {
-                    objectID: product.id,
-                    title: product.nameKey,
-                    description: product.descriptionKey,
-                    slug: product.slug,
-                    images: [product.image],
-                    eco_score: product.ethicalScore / 5, // Convertir vers 0-1
-                    ai_confidence: product.aiConfidence,
-                    confidence_pct: product.confidencePct,
-                    confidence_color: product.confidenceColor,
-                    tags: product.tagsKeys,
-                    zones_dispo: product.zonesDisponibles,
-                    verified_status: product.verifiedStatus,
-                    brand: product.brandKey,
-                    price: product.price
-                  };
+                // 🔧 FIX CRITIQUE: Validation stricte des données produit
+                if (!product || !product.id) {
+                  console.warn('⚠️ Produit invalide ignoré:', product);
+                  return null;
+                }
 
-                  return (
-                    <div 
-                      key={product.id || index}
-                      className="animate-fade-in-up"
-                      style={{ 
-                        animationDelay: `${index * 50}ms`,
-                        animationFillMode: 'both'
-                      }}
-                    >
-                      <ProductHit hit={adaptedHit} />
-                    </div>
-                  );
-                })}
+                // Adapter Product vers le format attendu par ProductHit avec validation
+                const adaptedHit = {
+                  objectID: product.id,
+                  title: product.nameKey || product.title || 'Produit éco-responsable',
+                  description: product.descriptionKey || product.description || '',
+                  slug: product.slug || product.id, // 🔧 FIX: Utiliser ID si pas de slug
+                  images: Array.isArray(product.images) ? product.images : 
+                           (product.image ? [product.image] : []),
+                  eco_score: typeof product.ethicalScore === 'number' ? 
+                            Math.min(Math.max(product.ethicalScore / 5, 0), 1) : 0, // Normaliser 0-1
+                  ai_confidence: typeof product.aiConfidence === 'number' ? 
+                                Math.min(Math.max(product.aiConfidence, 0), 1) : 0,
+                  confidence_pct: typeof product.confidencePct === 'number' ? 
+                                 Math.min(Math.max(product.confidencePct, 0), 100) : 0,
+                  confidence_color: product.confidenceColor || 'gray',
+                  tags: Array.isArray(product.tagsKeys) ? product.tagsKeys : 
+                        Array.isArray(product.tags) ? product.tags : [],
+                  zones_dispo: Array.isArray(product.zonesDisponibles) ? product.zonesDisponibles : [],
+                  verified_status: product.verifiedStatus || 'unknown',
+                  brand: product.brandKey || product.brand || '',
+                  price: typeof product.price === 'number' ? product.price : 15.99
+                };
+
+                // 🔧 VALIDATION FINALE: S'assurer qu'on a les données minimales
+                if (!adaptedHit.title || !adaptedHit.slug) {
+                  console.warn('⚠️ Produit sans titre/slug ignoré:', adaptedHit);
+                  return null;
+                }
+
+                return (
+                  <div 
+                    key={`product-${product.id}-${index}`}
+                    className="animate-fade-in-up"
+                    style={{ 
+                      animationDelay: `${index * 50}ms`,
+                      animationFillMode: 'both'
+                    }}
+                  >
+                    <ProductHit hit={adaptedHit} />
+                  </div>
+                );
+              }).filter(Boolean)}
               </div>
 
               {/* Pagination simplifiée et corrigée */}

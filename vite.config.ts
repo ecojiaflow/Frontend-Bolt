@@ -6,13 +6,13 @@ export default defineConfig({
   plugins: [react()],
   root: '.',
   
-  // Optimisations build
+  // Optimisations build pour Netlify
   build: {
     outDir: 'dist',
     rollupOptions: {
       input: './index.html',
       
-      // Code splitting intelligent
+      // 🔧 FIX: Code splitting forcé pour Netlify
       output: {
         manualChunks: {
           // Vendor libraries dans un chunk séparé
@@ -38,29 +38,28 @@ export default defineConfig({
     // CSS code splitting
     cssCodeSplit: true,
     
-    // Minification avancée
-    minify: 'terser',
-    terserOptions: {
-      compress: {
-        drop_console: true, // Supprimer console.log en prod
-        drop_debugger: true,
-        pure_funcs: ['console.log', 'console.info', 'console.debug']
-      }
-    },
+    // Minification simple (esbuild est plus compatible)
+    minify: 'esbuild',
     
     // Source maps désactivées en prod
     sourcemap: false,
     
     // Optimisation des assets
-    assetsInlineLimit: 4096, // Inline les petits assets (< 4kb)
+    assetsInlineLimit: 4096,
     
-    // Target moderne
-    target: 'esnext'
+    // Target moderne mais compatible
+    target: 'es2015'
+  },
+  
+  // 🔧 FIX: Variables d'environnement pour Netlify
+  define: {
+    'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
+    __DEV__: JSON.stringify(process.env.NODE_ENV === 'development'),
+    __PROD__: JSON.stringify(process.env.NODE_ENV === 'production')
   },
   
   // Optimisations dev
   server: {
-    // HMR plus rapide
     hmr: {
       overlay: false
     },
@@ -91,11 +90,5 @@ export default defineConfig({
       'react-i18next',
       'lucide-react'
     ]
-  },
-  
-  // Variables d'environnement
-  define: {
-    __DEV__: JSON.stringify(process.env.NODE_ENV === 'development'),
-    __PROD__: JSON.stringify(process.env.NODE_ENV === 'production')
   }
 })

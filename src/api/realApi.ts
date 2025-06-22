@@ -1,7 +1,30 @@
+<<<<<<< HEAD
+=======
+// /src/api/realApi.ts
+>>>>>>> 3ae457d (🎉 initial: Ecolojia frontend with SEO and bug fixes)
 import { Product } from '../types';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://ecolojia-backendv1.onrender.com';
 
+<<<<<<< HEAD
+=======
+// Cache simple et non-intrusif
+const requestCache = new Map<string, { data: any; timestamp: number }>();
+const CACHE_DURATION = 2 * 60 * 1000; // 2 minutes
+
+const getCachedRequest = (url: string) => {
+  const cached = requestCache.get(url);
+  if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+    return cached.data;
+  }
+  return null;
+};
+
+const setCachedRequest = (url: string, data: any) => {
+  requestCache.set(url, { data, timestamp: Date.now() });
+};
+
+>>>>>>> 3ae457d (🎉 initial: Ecolojia frontend with SEO and bug fixes)
 interface BackendProduct {
   id: string;
   title: string;
@@ -60,6 +83,16 @@ export async function fetchRealProducts(searchQuery: string = ''): Promise<Produ
       ? `${API_BASE}/api/products/search?q=${encodeURIComponent(searchQuery)}`
       : `${API_BASE}/api/products`;
     
+<<<<<<< HEAD
+=======
+    // Cache check - NON BLOQUANT
+    const cached = getCachedRequest(url);
+    if (cached) {
+      console.log('🚀 Cache hit');
+      return cached;
+    }
+    
+>>>>>>> 3ae457d (🎉 initial: Ecolojia frontend with SEO and bug fixes)
     console.log('🔍 Requête API:', url);
     
     const response = await fetch(url, {
@@ -77,7 +110,30 @@ export async function fetchRealProducts(searchQuery: string = ''): Promise<Produ
     const data = await response.json();
     console.log('📊 Données reçues:', data);
     
+<<<<<<< HEAD
     const backendProducts: BackendProduct[] = Array.isArray(data) ? data : [];
+=======
+    // Gérer les différents formats de réponse API
+    let backendProducts: BackendProduct[] = [];
+    
+    if (Array.isArray(data)) {
+      // Format direct : [product1, product2, ...]
+      backendProducts = data;
+    } else if (data.products && Array.isArray(data.products)) {
+      // Format avec wrapper : { products: [product1, product2, ...] }
+      backendProducts = data.products;
+    } else if (data.data && Array.isArray(data.data)) {
+      // Format avec data : { data: [product1, product2, ...] }
+      backendProducts = data.data;
+    } else if (data.results && Array.isArray(data.results)) {
+      // Format avec results : { results: [product1, product2, ...] }
+      backendProducts = data.results;
+    } else {
+      console.warn('Format de données API inattendu:', data);
+      backendProducts = [];
+    }
+    
+>>>>>>> 3ae457d (🎉 initial: Ecolojia frontend with SEO and bug fixes)
     console.log('📦 Produits trouvés:', backendProducts.length);
     
     const adaptedProducts = backendProducts
@@ -85,6 +141,13 @@ export async function fetchRealProducts(searchQuery: string = ''): Promise<Produ
       .filter(Boolean) as Product[];
     
     console.log('✅ Produits adaptés:', adaptedProducts.length);
+<<<<<<< HEAD
+=======
+    
+    // Cache save - NON BLOQUANT
+    setCachedRequest(url, adaptedProducts);
+    
+>>>>>>> 3ae457d (🎉 initial: Ecolojia frontend with SEO and bug fixes)
     return adaptedProducts;
     
   } catch (error) {
@@ -101,7 +164,10 @@ export async function fetchRealProducts(searchQuery: string = ''): Promise<Produ
   }
 }
 
+<<<<<<< HEAD
 // NOUVELLE FONCTION pour récupérer un produit par slug
+=======
+>>>>>>> 3ae457d (🎉 initial: Ecolojia frontend with SEO and bug fixes)
 export async function fetchProductBySlug(slug: string): Promise<Product | null> {
   if (!slug || slug === 'undefined') {
     console.error('❌ Slug invalide:', slug);
@@ -109,7 +175,17 @@ export async function fetchProductBySlug(slug: string): Promise<Product | null> 
   }
 
   try {
+<<<<<<< HEAD
     const response = await fetch(`${API_BASE}/api/products/${slug}`);
+=======
+    const url = `${API_BASE}/api/products/${slug}`;
+    
+    // Cache check
+    const cached = getCachedRequest(url);
+    if (cached) return cached;
+
+    const response = await fetch(url);
+>>>>>>> 3ae457d (🎉 initial: Ecolojia frontend with SEO and bug fixes)
     
     if (!response.ok) {
       if (response.status === 404) return null;
@@ -117,7 +193,16 @@ export async function fetchProductBySlug(slug: string): Promise<Product | null> 
     }
     
     const data = await response.json();
+<<<<<<< HEAD
     return adaptBackendToFrontend(data);
+=======
+    const adapted = adaptBackendToFrontend(data);
+    
+    // Cache save
+    setCachedRequest(url, adapted);
+    
+    return adapted;
+>>>>>>> 3ae457d (🎉 initial: Ecolojia frontend with SEO and bug fixes)
     
   } catch (error) {
     console.error('❌ Erreur récupération produit:', error);

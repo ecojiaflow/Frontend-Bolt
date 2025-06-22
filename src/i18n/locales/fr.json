@@ -62,5 +62,44 @@
     "tcoCertified": "TCO Certified",
     "demeter": "Demeter",
     "natureEtProgres": "Nature & Progrès"
+<<<<<<< HEAD
+=======
+  },
+  "common": {
+    "searchingAlgolia": "Recherche en cours...",
+    "discoverProducts": "Découvrir nos produits",
+    "searchResults": "Résultats pour \"{{query}}\"",
+    "ecoProducts": "Produits éco-responsables",
+    "productsFound_one": "{{count}} produit trouvé",
+    "productsFound_other": "{{count}} produits trouvés",
+    "correspondingSearch": "correspondant à votre recherche",
+    "available": "disponibles",
+    "filtered": "filtré",
+    "filtered_plural": "filtrés",
+    "filters": "Filtres",
+    "filterResults": "Filtrer les résultats",
+    "ecoScoreMin": "Score écologique minimum",
+    "allScores": "Tous les scores",
+    "excellent": "Excellent (80%+)",
+    "veryGood": "Très bon (60%+)",
+    "good": "Bon (40%+)",
+    "availabilityZone": "Zone de disponibilité",
+    "allZones": "Toutes les zones",
+    "france": "France",
+    "europe": "Europe",
+    "usa": "États-Unis",
+    "aiConfidence": "Confiance IA",
+    "allLevels": "Tous les niveaux",
+    "certified": "Certifié (80%+)",
+    "validated": "Validé (60%+)",
+    "analyzing": "En analyse (40%+)",
+    "hideFilters": "Masquer les filtres",
+    "reset": "Réinitialiser",
+    "apply": "Appliquer",
+    "searchInProgress": "Recherche en cours...",
+    "previous": "Précédent",
+    "next": "Suivant",
+    "resultsFoundMs": "{{count}} résultat{{count === 1 ? '' : 's'}} trouvé{{count === 1 ? '' : 's'}} en {{time}}ms"
+>>>>>>> 3ae457d (🎉 initial: Ecolojia frontend with SEO and bug fixes)
   }
 }

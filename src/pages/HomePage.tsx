@@ -65,6 +65,7 @@ const HomePage: React.FC = () => {
 
   const currentQuery = searchParams.get('q') || '';
 
+<<<<<<< HEAD
   // 🛡️ FONCTION ULTRA-SÉCURISÉE: Génération de slug JAMAIS undefined
   const generateUltraSecureSlug = useCallback((product: any): string | null => {
     // ÉTAPE 1: Validation stricte du produit
@@ -73,10 +74,24 @@ const HomePage: React.FC = () => {
     }
 
     // ÉTAPE 2: Vérifier slug existant ET valide
+=======
+  // 🔧 FONCTION CRITIQUE: Génération et validation de slug ultra-sécurisée
+  const generateUltraSecureSlug = useCallback((product: any): string => {
+    console.log('🔧 HomePage - Génération slug ultra-sécurisée pour:', {
+      id: product.id,
+      slug: product.slug,
+      title: product.nameKey || product.title,
+      type: typeof product.slug,
+      timestamp: new Date().toISOString()
+    });
+    
+    // 1. Vérifier slug existant avec validation ultra-stricte
+>>>>>>> 1208232 (🔧 fix: ULTIMATE slug validation - prevent all undefined URLs with triple validation)
     if (product.slug && 
         typeof product.slug === 'string' && 
         product.slug.trim() !== '' && 
         product.slug !== 'undefined' && 
+<<<<<<< HEAD
         product.slug !== 'null' &&
         !product.slug.includes('undefined') &&
         product.slug.length > 0) {
@@ -86,6 +101,20 @@ const HomePage: React.FC = () => {
     // ÉTAPE 3: Générer depuis le titre
     const title = product.nameKey || product.title || product.name || '';
     if (title && typeof title === 'string' && title.trim() !== '' && title !== 'undefined') {
+=======
+        product.slug !== 'null' && 
+        product.slug.toLowerCase() !== 'undefined' &&
+        product.slug.toLowerCase() !== 'null') {
+      
+      const cleanSlug = product.slug.trim();
+      console.log('✅ HomePage - Slug existant validé:', cleanSlug);
+      return cleanSlug;
+    }
+    
+    // 2. Générer depuis le titre avec validation
+    const title = product.nameKey || product.title || '';
+    if (title && typeof title === 'string' && title.trim() !== '') {
+>>>>>>> 1208232 (🔧 fix: ULTIMATE slug validation - prevent all undefined URLs with triple validation)
       const generatedSlug = title
         .toLowerCase()
         .normalize('NFD')
@@ -95,11 +124,20 @@ const HomePage: React.FC = () => {
         .replace(/-+/g, '-')            // Tirets multiples → simple
         .replace(/^-|-$/g, '');         // Supprimer tirets début/fin
       
+<<<<<<< HEAD
       if (generatedSlug && generatedSlug !== 'undefined' && generatedSlug.length > 2) {
+=======
+      if (generatedSlug && 
+          generatedSlug !== 'undefined' && 
+          generatedSlug !== '' && 
+          generatedSlug.length > 0) {
+        console.log('✅ HomePage - Slug généré depuis titre:', generatedSlug);
+>>>>>>> 1208232 (🔧 fix: ULTIMATE slug validation - prevent all undefined URLs with triple validation)
         return generatedSlug;
       }
     }
     
+<<<<<<< HEAD
     // ÉTAPE 4: Utiliser l'ID valide
     const id = product.id || product.objectID || product._id || '';
     if (id && typeof id === 'string' && id !== 'undefined' && id.trim() !== '' && id.length > 0) {
@@ -108,6 +146,24 @@ const HomePage: React.FC = () => {
     
     // ÉTAPE 5: Si TOUT échoue, retourner null (ne pas rendre le produit)
     return null;
+=======
+    // 3. Utiliser l'ID comme fallback
+    const id = product.id || product.objectID || '';
+    if (id && 
+        typeof id === 'string' && 
+        id !== 'undefined' && 
+        id !== 'null' && 
+        id.trim() !== '') {
+      const idSlug = `product-${id}`;
+      console.log('⚠️ HomePage - Slug généré depuis ID:', idSlug);
+      return idSlug;
+    }
+    
+    // 4. Fallback ultime d'urgence
+    const emergencySlug = `emergency-product-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    console.error('🚨 HomePage - Slug d\'urgence généré:', emergencySlug);
+    return emergencySlug;
+>>>>>>> 1208232 (🔧 fix: ULTIMATE slug validation - prevent all undefined URLs with triple validation)
   }, []);
 
   // SEO dynamique
@@ -159,6 +215,8 @@ const HomePage: React.FC = () => {
       const results = await fetchRealProducts('');
       const processingTime = Date.now() - startTime;
       
+      console.log('📦 HomePage - Produits initiaux chargés:', results.length);
+      
       setAllResults(results);
       setSearchResults(paginateResults(results, 0));
       setOriginalResults(results);
@@ -194,6 +252,8 @@ const HomePage: React.FC = () => {
       const startTime = Date.now();
       const results = await fetchRealProducts(searchQuery);
       const processingTime = Date.now() - startTime;
+      
+      console.log('🔍 HomePage - Résultats recherche:', results.length);
       
       setAllResults(results);
       setSearchResults(paginateResults(results, page));
@@ -577,6 +637,7 @@ const HomePage: React.FC = () => {
                 {searchResults.map((product, index) => {
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                   // 🚨 VALIDATION ULTRA-STRICTE - NE JAMAIS RENDRE SI PROBLÉMATIQUE
                   if (!product || !product.id) {
                     return null; // Skip complètement
@@ -626,11 +687,17 @@ const HomePage: React.FC = () => {
                 }
 =======
                   // 🔧 FIX CRITIQUE: Validation stricte des données produit
+=======
+                  // 🔧 FIX CRITIQUE: Validation stricte des données produit avec logs ultra-détaillés
+>>>>>>> 1208232 (🔧 fix: ULTIMATE slug validation - prevent all undefined URLs with triple validation)
                   if (!product || !product.id) {
-                    console.warn('⚠️ Produit invalide ignoré:', product);
+                    console.warn('⚠️ HomePage - Produit invalide ignoré:', product);
                     return null;
                   }
 >>>>>>> 6fa9476 (🔧 fix: Ultra-secure slug validation to prevent undefined URLs)
+
+                  // 🚨 GÉNÉRATION DE SLUG ULTRA-SÉCURISÉE
+                  const secureSlug = generateUltraSecureSlug(product);
 
                   // Adapter Product vers le format attendu par ProductHit avec validation ultra-stricte
                   const adaptedHit = {
@@ -638,47 +705,8 @@ const HomePage: React.FC = () => {
                     title: product.nameKey || product.title || 'Produit éco-responsable',
                     description: product.descriptionKey || product.description || '',
                     
-                    // 🚨 FIX CRITIQUE: Validation ultra-stricte du slug
-                    slug: (() => {
-                      console.log('🔧 Debug slug pour produit:', {
-                        id: product.id,
-                        slug: product.slug,
-                        title: product.nameKey || product.title
-                      });
-                      
-                      // 1. Vérifier le slug existant
-                      if (product.slug && 
-                          typeof product.slug === 'string' && 
-                          product.slug.trim() !== '' && 
-                          product.slug !== 'undefined' && 
-                          product.slug !== 'null') {
-                        console.log('✅ Slug valide trouvé:', product.slug);
-                        return product.slug;
-                      }
-                      
-                      // 2. Générer depuis le titre
-                      const title = product.nameKey || product.title || '';
-                      if (title && typeof title === 'string') {
-                        const generatedSlug = title
-                          .toLowerCase()
-                          .normalize('NFD')
-                          .replace(/[\u0300-\u036f]/g, '') // Supprimer accents
-                          .replace(/[^a-z0-9\s-]/g, '')   // Garder alphanumériques
-                          .replace(/\s+/g, '-')           // Espaces → tirets
-                          .replace(/-+/g, '-')            // Tirets multiples → simple
-                          .replace(/^-|-$/g, '');         // Supprimer tirets début/fin
-                        
-                        if (generatedSlug && generatedSlug !== 'undefined') {
-                          console.log('✅ Slug généré depuis titre:', generatedSlug);
-                          return generatedSlug;
-                        }
-                      }
-                      
-                      // 3. Fallback avec ID
-                      const fallbackSlug = `product-${product.id}`;
-                      console.log('⚠️ Utilisation fallback slug:', fallbackSlug);
-                      return fallbackSlug;
-                    })(),
+                    // 🚨 SLUG ULTRA-SÉCURISÉ AVEC VALIDATION FINALE
+                    slug: secureSlug,
                     
                     images: Array.isArray(product.images) ? product.images : 
                              (product.image ? [product.image] : []),
@@ -697,16 +725,39 @@ const HomePage: React.FC = () => {
                     price: typeof product.price === 'number' ? product.price : 15.99
                   };
 
-                  // 🔧 VALIDATION FINALE: S'assurer qu'on a les données minimales
-                  if (!adaptedHit.title || !adaptedHit.slug || adaptedHit.slug === 'undefined') {
-                    console.warn('⚠️ Produit sans titre/slug valide ignoré:', {
+                  // 🔧 LOGS DE DEBUG COMPLETS AVEC TOUTES LES DONNÉES
+                  console.log('🔧 HomePage - Produit adapté avec debug complet:', {
+                    index,
+                    productId: product.id,
+                    originalSlug: product.slug,
+                    generatedSlug: secureSlug,
+                    finalSlug: adaptedHit.slug,
+                    productTitle: adaptedHit.title,
+                    timestamp: new Date().toISOString(),
+                    originalProduct: product,
+                    adaptedHit: adaptedHit
+                  });
+
+                  // 🚨 VALIDATION FINALE AVANT AFFICHAGE
+                  if (!adaptedHit.title || 
+                      !adaptedHit.slug || 
+                      adaptedHit.slug === 'undefined' || 
+                      adaptedHit.slug === 'null' ||
+                      adaptedHit.slug.includes('undefined')) {
+                    
+                    console.error('🚨 HomePage - ALERTE CRITIQUE: Produit avec slug invalide bloqué!', {
                       title: adaptedHit.title,
                       slug: adaptedHit.slug,
-                      originalProduct: product
+                      originalProduct: product,
+                      adaptedHit: adaptedHit
                     });
-                    return null;
+                    
+                    // Forcer un slug de secours d'urgence
+                    adaptedHit.slug = `emergency-product-${product.id}-${Date.now()}`;
+                    console.warn('🔧 HomePage - Slug de secours d\'urgence appliqué:', adaptedHit.slug);
                   }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
                 return (
                   <div 
@@ -724,9 +775,18 @@ const HomePage: React.FC = () => {
 >>>>>>> ef19aef (🔧 fix: Secure product mapping to prevent undefined slugs in production)
 =======
                   console.log('✅ Produit adapté avec succès:', {
+=======
+                  // Validation finale de sécurité
+                  if (adaptedHit.slug.includes('undefined')) {
+                    console.error('🚨 ERREUR CRITIQUE: Slug contient encore undefined après tous les correctifs!', adaptedHit);
+                    return null; // Ne pas afficher ce produit
+                  }
+
+                  console.log('✅ HomePage - Produit validé pour affichage:', {
+>>>>>>> 1208232 (🔧 fix: ULTIMATE slug validation - prevent all undefined URLs with triple validation)
                     id: adaptedHit.objectID,
                     title: adaptedHit.title,
-                    slug: adaptedHit.slug
+                    finalSlug: adaptedHit.slug
                   });
 
                   return (

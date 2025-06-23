@@ -22,61 +22,52 @@ interface ProductHitProps {
 }
 
 const ProductHit: React.FC<ProductHitProps> = ({ hit, viewMode = 'grid', onProductClick }) => {
-  // 🛡️ VALIDATION CRITIQUE DU SLUG AVANT TOUT RENDU
-  const safeSlug = React.useMemo(() => {
-    if (!hit.slug || 
-        hit.slug === 'undefined' || 
-        hit.slug === 'null' || 
-        hit.slug.trim() === '' ||
-        hit.slug.includes('undefined')) {
-      
-      // Générer un slug d'urgence depuis le titre ou l'ID
-      const title = hit.title || '';
-      if (title && title.trim() !== '') {
-        const generatedSlug = title
-          .toLowerCase()
-          .normalize('NFD')
-          .replace(/[\u0300-\u036f]/g, '')
-          .replace(/[^a-z0-9\s-]/g, '')
-          .replace(/\s+/g, '-')
-          .replace(/-+/g, '-')
-          .replace(/^-|-$/g, '');
-        
-        if (generatedSlug && generatedSlug.length > 0) {
-          return generatedSlug;
-        }
-      }
-      
-      // Fallback avec l'ID
-      return `product-${hit.objectID || Date.now()}`;
-    }
+  
+  // 🚨 VALIDATION CRITIQUE - SI LE SLUG EST DANGEREUX, NE PAS RENDRE
+  if (!hit.slug || 
+      hit.slug === 'undefined' || 
+      hit.slug === 'null' || 
+      hit.slug.trim() === '' ||
+      hit.slug.includes('undefined') ||
+      hit.slug.length < 2) {
     
-    return hit.slug;
-  }, [hit.slug, hit.title, hit.objectID]);
-
-  // 🚨 Si le slug est encore problématique, ne pas rendre le composant
-  if (!safeSlug || safeSlug === 'undefined' || safeSlug.includes('undefined')) {
+    // En dev, log l'erreur pour debug
     if (import.meta.env.DEV) {
-      console.error('🚨 ProductHit: Slug dangereux détecté, composant ignoré:', { 
-        originalSlug: hit.slug, 
-        safeSlug, 
-        title: hit.title 
+      console.error('🚨 ProductHit: Slug dangereux - composant non rendu:', { 
+        slug: hit.slug, 
+        title: hit.title,
+        objectID: hit.objectID
       });
     }
+    
+    // NE PAS RENDRE ce produit
+    return null;
+  }
+
+  // 🛡️ VALIDATION FINALE DU SLUG AVANT UTILISATION
+  const finalSlug = hit.slug.trim();
+  
+  // Double vérification
+  if (!finalSlug || finalSlug === 'undefined' || finalSlug.includes('undefined')) {
     return null;
   }
 
   const handleClick = (e: React.MouseEvent) => {
-    // Validation finale avant navigation
-    if (!safeSlug || safeSlug === 'undefined' || safeSlug.includes('undefined')) {
+    // 🚨 TRIPLE VALIDATION AVANT NAVIGATION
+    if (!finalSlug || 
+        finalSlug === 'undefined' || 
+        finalSlug.includes('undefined') || 
+        finalSlug.trim() === '') {
+      
       e.preventDefault();
-      console.error('🚨 Navigation bloquée - slug invalide');
-      return;
+      e.stopPropagation();
+      console.error('🚨 Navigation BLOQUÉE - slug invalide:', finalSlug);
+      return false;
     }
 
     if (onProductClick) {
       e.preventDefault();
-      onProductClick(safeSlug);
+      onProductClick(finalSlug);
     }
   };
 
@@ -99,7 +90,7 @@ const ProductHit: React.FC<ProductHitProps> = ({ hit, viewMode = 'grid', onProdu
   if (viewMode === 'list') {
     return (
       <Link 
-        to={`/product/${safeSlug}`}
+        to={`/product/${finalSlug}`}
         onClick={handleClick}
         className="block bg-white rounded-lg border border-gray-200 hover:shadow-md transition-all duration-200 p-4"
       >
@@ -164,7 +155,7 @@ const ProductHit: React.FC<ProductHitProps> = ({ hit, viewMode = 'grid', onProdu
 
   return (
     <Link 
-      to={`/product/${safeSlug}`}
+      to={`/product/${finalSlug}`}
       onClick={handleClick}
       className="group block bg-white rounded-xl border border-gray-200 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 overflow-hidden product-card"
     >

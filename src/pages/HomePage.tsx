@@ -65,20 +65,27 @@ const HomePage: React.FC = () => {
 
   const currentQuery = searchParams.get('q') || '';
 
-  // 🔧 FONCTION: Génération de slug sécurisée (sans logs debug)
-  const generateSecureSlug = useCallback((product: any): string => {
-    // 1. Vérifier slug existant
+  // 🛡️ FONCTION ULTRA-SÉCURISÉE: Génération de slug JAMAIS undefined
+  const generateUltraSecureSlug = useCallback((product: any): string | null => {
+    // ÉTAPE 1: Validation stricte du produit
+    if (!product || typeof product !== 'object') {
+      return null;
+    }
+
+    // ÉTAPE 2: Vérifier slug existant ET valide
     if (product.slug && 
         typeof product.slug === 'string' && 
         product.slug.trim() !== '' && 
         product.slug !== 'undefined' && 
-        product.slug !== 'null') {
+        product.slug !== 'null' &&
+        !product.slug.includes('undefined') &&
+        product.slug.length > 0) {
       return product.slug.trim();
     }
     
-    // 2. Générer depuis le titre
-    const title = product.nameKey || product.title || '';
-    if (title && typeof title === 'string' && title.trim() !== '') {
+    // ÉTAPE 3: Générer depuis le titre
+    const title = product.nameKey || product.title || product.name || '';
+    if (title && typeof title === 'string' && title.trim() !== '' && title !== 'undefined') {
       const generatedSlug = title
         .toLowerCase()
         .normalize('NFD')
@@ -88,19 +95,19 @@ const HomePage: React.FC = () => {
         .replace(/-+/g, '-')            // Tirets multiples → simple
         .replace(/^-|-$/g, '');         // Supprimer tirets début/fin
       
-      if (generatedSlug && generatedSlug !== 'undefined' && generatedSlug.length > 0) {
+      if (generatedSlug && generatedSlug !== 'undefined' && generatedSlug.length > 2) {
         return generatedSlug;
       }
     }
     
-    // 3. Utiliser l'ID comme fallback
-    const id = product.id || product.objectID || '';
-    if (id && typeof id === 'string' && id !== 'undefined' && id.trim() !== '') {
-      return `product-${id}`;
+    // ÉTAPE 4: Utiliser l'ID valide
+    const id = product.id || product.objectID || product._id || '';
+    if (id && typeof id === 'string' && id !== 'undefined' && id.trim() !== '' && id.length > 0) {
+      return `product-${id.replace(/[^a-z0-9]/gi, '-')}`;
     }
     
-    // 4. Fallback ultime d'urgence
-    return `product-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    // ÉTAPE 5: Si TOUT échoue, retourner null (ne pas rendre le produit)
+    return null;
   }, []);
 
   // SEO dynamique
@@ -568,16 +575,18 @@ const HomePage: React.FC = () => {
                   : "space-y-4"
               }>
                 {searchResults.map((product, index) => {
-                  // Validation stricte des données produit
+                  // 🚨 VALIDATION ULTRA-STRICTE - NE JAMAIS RENDRE SI PROBLÉMATIQUE
                   if (!product || !product.id) {
-                    if (import.meta.env.DEV) {
-                      console.warn('Produit invalide ignoré:', product);
-                    }
-                    return null;
+                    return null; // Skip complètement
                   }
 
-                  // Générer slug sécurisé
-                  const secureSlug = generateSecureSlug(product);
+                  // 🛡️ Générer slug ultra-sécurisé
+                  const secureSlug = generateUltraSecureSlug(product);
+                  
+                  // 🚨 SI LE SLUG EST NULL/UNDEFINED, NE PAS RENDRE LE PRODUIT
+                  if (!secureSlug || secureSlug.includes('undefined')) {
+                    return null; // Skip ce produit
+                  }
                   
                   return (
                     <ProductHit
@@ -590,26 +599,23 @@ const HomePage: React.FC = () => {
                         category: product.category || '',
                         image_url: product.image_url || '',
                         eco_score: product.eco_score || 0,
-                        slug: secureSlug,
+                        slug: secureSlug, // SLUG GARANTI VALIDE
                         tags: product.tags || [],
                         zones_dispo: product.zones_dispo || [],
                         verified_status: product.verified_status || 'manual_review'
                       }}
                       viewMode={viewMode}
                       onProductClick={(slug: string) => {
-                        // Validation finale avant navigation
-                        if (slug && slug !== 'undefined' && slug.trim() !== '') {
-                          if (import.meta.env.DEV) {
-                            console.log('Navigation vers:', `/product/${slug}`);
-                          }
-                          navigate(`/product/${slug}`);
-                        } else {
-                          console.error('Navigation bloquée - slug invalide:', slug);
+                        // 🚨 VALIDATION FINALE AVANT NAVIGATION
+                        if (!slug || slug === 'undefined' || slug.includes('undefined') || slug.trim() === '') {
+                          console.error('🚨 Navigation bloquée - slug invalide final:', slug);
+                          return; // BLOQUER la navigation
                         }
+                        navigate(`/product/${slug}`);
                       }}
                     />
                   );
-                })}
+                }).filter(Boolean)} {/* Supprimer les nulls */}
               </div>
 
               {/* Pagination */}

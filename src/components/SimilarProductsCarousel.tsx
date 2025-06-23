@@ -19,34 +19,52 @@ const SimilarProductsCarousel: React.FC<Props> = ({ productId }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 🚨 VALIDATION CRITIQUE - NE PAS CHARGER SI productId INVALIDE
-    if (!productId || productId === 'undefined' || productId.trim() === '') {
-      console.error('🚨 SimilarProductsCarousel: productId invalide:', productId);
+    // 🚨 VALIDATION ULTRA-STRICTE - BLOQUER TOUT SI PRODUCTID INVALIDE
+    if (!productId || 
+        productId === 'undefined' || 
+        productId === 'null' ||
+        productId.toString().includes('undefined') ||
+        productId.trim() === '' ||
+        typeof productId !== 'string') {
+      
+      console.warn('⚠️ SimilarProductsCarousel: productId invalide, composant désactivé:', productId);
       setLoading(false);
       setSimilar([]);
-      return;
+      return; // ARRÊT TOTAL
     }
 
     const loadSimilarProducts = async () => {
       try {
         setLoading(true);
         
-        const allProducts = await fetchRealProducts();
+        // 🛡️ APPEL SÉCURISÉ - avec query vide pour éviter undefined
+        const allProducts = await fetchRealProducts('');
+        
+        if (!Array.isArray(allProducts) || allProducts.length === 0) {
+          setSimilar([]);
+          return;
+        }
         
         const similarProducts = allProducts
-          .filter(product => product.id !== productId)
+          .filter(product => 
+            product && 
+            product.id && 
+            product.id !== productId &&
+            product.id !== 'undefined'
+          )
           .slice(0, 6)
           .map(product => {
-            // 🛡️ GÉNÉRATION DE SLUG ULTRA-SÉCURISÉE
+            // 🛡️ GÉNÉRATION DE SLUG SÉCURISÉE
             let safeSlug = product.slug;
             
-            // Si le slug est invalide, générer depuis le titre
+            // Validation et nettoyage du slug
             if (!safeSlug || 
                 safeSlug === 'undefined' || 
                 safeSlug === 'null' || 
                 safeSlug.includes('undefined') ||
                 safeSlug.trim() === '') {
               
+              // Essayer de générer depuis le titre
               const title = product.nameKey || product.title || '';
               if (title && title.trim() !== '' && title !== 'undefined') {
                 safeSlug = title
@@ -59,7 +77,7 @@ const SimilarProductsCarousel: React.FC<Props> = ({ productId }) => {
                   .replace(/^-|-$/g, '');
               }
               
-              // Si encore invalide, utiliser l'ID
+              // Fallback avec l'ID
               if (!safeSlug || safeSlug === 'undefined' || safeSlug.length < 2) {
                 safeSlug = `product-${product.id}`;
               }
@@ -69,16 +87,19 @@ const SimilarProductsCarousel: React.FC<Props> = ({ productId }) => {
               id: product.id,
               title: product.nameKey || 'Produit sans titre',
               slug: safeSlug,
-              image_url: product.image,
+              image_url: product.image || null,
               eco_score: (product.ethicalScore || 0) / 5
             };
           })
-          // 🚨 FILTRER LES PRODUITS AVEC SLUG ENCORE PROBLÉMATIQUE
+          // 🚨 FILTRAGE FINAL - SUPPRIMER TOUS LES PRODUITS PROBLÉMATIQUES
           .filter(product => 
+            product && 
+            product.id &&
             product.slug && 
             product.slug !== 'undefined' && 
             !product.slug.includes('undefined') &&
-            product.slug.trim() !== ''
+            product.slug.trim() !== '' &&
+            product.slug.length > 2
           );
 
         setSimilar(similarProducts);
@@ -94,6 +115,11 @@ const SimilarProductsCarousel: React.FC<Props> = ({ productId }) => {
     loadSimilarProducts();
   }, [productId]);
 
+  // Ne pas rendre si pas de productId valide
+  if (!productId || productId === 'undefined' || productId.includes('undefined')) {
+    return null;
+  }
+
   if (loading) {
     return <p className="text-sm text-gray-500">Chargement des suggestions...</p>;
   }
@@ -107,26 +133,30 @@ const SimilarProductsCarousel: React.FC<Props> = ({ productId }) => {
       <h2 className="text-lg font-semibold text-eco-text mb-3">Produits similaires</h2>
       <div className="flex gap-4 overflow-x-auto pb-2">
         {similar.map((product) => {
-          // 🚨 VALIDATION FINALE AVANT RENDU
-          if (!product.slug || 
+          // 🚨 VALIDATION FINALE AVANT CHAQUE RENDU
+          if (!product || 
+              !product.id ||
+              !product.slug || 
               product.slug === 'undefined' || 
               product.slug.includes('undefined') ||
               product.slug.trim() === '') {
-            return null; // Skip ce produit
+            return null;
           }
 
           return (
             <Link
-              key={product.id}
+              key={`similar-${product.id}`}
               to={`/product/${product.slug}`}
               className="min-w-[180px] flex-shrink-0 bg-white border border-gray-200 rounded-lg shadow p-3 hover:shadow-md transition"
               onClick={(e) => {
-                // 🚨 VALIDATION AVANT NAVIGATION
+                // 🚨 VALIDATION ULTIME AVANT NAVIGATION
                 if (!product.slug || 
                     product.slug === 'undefined' || 
-                    product.slug.includes('undefined')) {
+                    product.slug.includes('undefined') ||
+                    product.slug.trim() === '') {
                   e.preventDefault();
-                  console.error('🚨 Navigation bloquée dans SimilarProducts:', product.slug);
+                  e.stopPropagation();
+                  console.error('🚨 Navigation SimilarProducts bloquée:', product.slug);
                   return false;
                 }
               }}
@@ -147,11 +177,11 @@ const SimilarProductsCarousel: React.FC<Props> = ({ productId }) => {
               )}
               <p className="mt-2 font-medium text-sm line-clamp-2">{product.title}</p>
               <p className="text-green-600 text-xs">
-                Éco-score : {Math.round(product.eco_score * 100)}%
+                Éco-score : {Math.round((product.eco_score || 0) * 100)}%
               </p>
             </Link>
           );
-        }).filter(Boolean)} {/* Supprimer les nulls */}
+        }).filter(Boolean)}
       </div>
     </section>
   );

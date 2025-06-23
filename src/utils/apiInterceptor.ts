@@ -19,7 +19,7 @@ export class APIInterceptor {
     window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
       const url = typeof input === 'string' ? input : input.toString();
       
-      // 🚨 BLOQUER TOUS LES UNDEFINED
+      // 🚨 TRAQUER TOUTES LES REQUÊTES UNDEFINED
       const hasUndefined = url.includes('/undefined') || 
                           url.includes('undefined') || 
                           url.endsWith('/undefined') ||
@@ -27,8 +27,18 @@ export class APIInterceptor {
                           url.match(/\/products\/undefined($|\?)/);
       
       if (hasUndefined) {
+        // 🔍 LOG DÉTAILLÉ POUR IDENTIFIER LA SOURCE
+        console.error('🚨 UNDEFINED REQUEST DETECTED:', {
+          url: url,
+          timestamp: new Date().toISOString(),
+          stack: new Error().stack,
+          location: window.location.href,
+          userAgent: navigator.userAgent
+        });
+        
         // Rediriger immédiatement vers l'accueil
         if (window.location.pathname.includes('undefined')) {
+          console.error('🚨 REDIRECTING FROM UNDEFINED PATH');
           window.location.replace('/');
         }
         
@@ -45,6 +55,15 @@ export class APIInterceptor {
             headers: { 'Content-Type': 'application/json' }
           }
         ));
+      }
+
+      // Log de toutes les requêtes API pour debug
+      if (url.includes('/api/')) {
+        console.log('📡 API Request:', {
+          endpoint: url.split('/').slice(-2).join('/'),
+          method: init?.method || 'GET',
+          timestamp: Date.now()
+        });
       }
 
       // Continuer avec la requête normale

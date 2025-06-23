@@ -1,5 +1,14 @@
 import React, { useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  useLocation,
+  useNavigate,
+  useParams,
+  Navigate,
+} from 'react-router-dom';
+
 import ErrorBoundary from './components/ErrorBoundary';
 import Navbar from './components/Navbar';
 import CategoryNavigation from './components/CategoryNavigation';
@@ -17,41 +26,48 @@ import CategoryPage from './pages/CategoryPage';
 
 import './index.css';
 
-// Composant pour gérer les redirections undefined
+/* ------------------------------------------------------------------ */
+/* 🔍 RedirectChecker : coupe net les URL invalides sans reload       */
+/* ------------------------------------------------------------------ */
 const RedirectChecker: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // 🚨 REDIRECTION AUTOMATIQUE SI URL CONTIENT UNDEFINED
-    if (location.pathname.includes('undefined') || 
-        location.pathname.includes('/undefined') ||
-        location.pathname === '/product/undefined' ||
-        location.pathname === '/product/null') {
-      
-      console.error('🚨 URL undefined détectée, redirection vers accueil:', location.pathname);
-      window.location.replace('/');
-      return;
+    const pathname = location.pathname.toLowerCase();
+
+    const isInvalid =
+      pathname.includes('/undefined') ||
+      pathname.includes('/null') ||
+      pathname === '/product/undefined' ||
+      pathname === '/product/null';
+
+    if (isInvalid) {
+      console.error('🚨 URL invalide détectée – redirection vers l’accueil :', pathname);
+      navigate('/', { replace: true });
     }
-  }, [location]);
+  }, [location, navigate]);
 
   return <>{children}</>;
 };
 
-// Composant wrapper pour ProductPage avec validation
+/* ------------------------------------------------------------------ */
+/* 🛡️ SafeProductPage : valide proprement le paramètre :slug          */
+/* ------------------------------------------------------------------ */
 const SafeProductPage: React.FC = () => {
-  const location = useLocation();
-  
-  // 🚨 Bloquer le rendu si le slug est undefined
-  const slug = location.pathname.split('/product/')[1];
-  
-  if (!slug || slug === 'undefined' || slug === 'null' || slug.includes('undefined')) {
-    console.error('🚨 SafeProductPage: Slug invalide détecté:', slug);
+  const { slug } = useParams<{ slug?: string }>();
+
+  if (!slug || slug === 'undefined' || slug === 'null') {
+    console.error('🚨 SafeProductPage : slug invalide détecté :', slug);
     return <Navigate to="/" replace />;
   }
-  
+
   return <ProductPage />;
 };
 
+/* ------------------------------------------------------------------ */
+/* 🌳 App root                                                        */
+/* ------------------------------------------------------------------ */
 function App() {
   return (
     <ErrorBoundary>
@@ -68,18 +84,18 @@ function App() {
                 <Route path="/privacy" element={<PrivacyPage />} />
                 <Route path="/terms" element={<TermsPage />} />
                 <Route path="/legal" element={<LegalPage />} />
-                
-                {/* Route sécurisée pour les produits */}
+
+                {/* Route sécurisée pour chaque produit */}
                 <Route path="/product/:slug" element={<SafeProductPage />} />
-                
-                {/* Redirections explicites pour les cas undefined */}
+
+                {/* Fallbacks explicites – restent inoffensifs */}
                 <Route path="/product/undefined" element={<Navigate to="/" replace />} />
                 <Route path="/product/null" element={<Navigate to="/" replace />} />
-                
+
                 <Route path="/stats" element={<StatsPage />} />
                 <Route path="/category/:category" element={<CategoryPage />} />
-                
-                {/* Catch-all pour les routes inexistantes */}
+
+                {/* Catch-all */}
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </main>

@@ -593,7 +593,8 @@ const HomePage: React.FC = () => {
                       key={`${product.id}-${index}`}
                       hit={{
                         objectID: product.id,
-                        title: product.title || 'Produit sans titre',
+                      title: product.title || product.name || product.nameKey || 'Produit sans titre',
+
                         description: product.description || '',
                         brand: product.brand || '',
                         category: product.category || '',

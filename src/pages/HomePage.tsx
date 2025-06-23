@@ -66,6 +66,7 @@ const HomePage: React.FC = () => {
   const currentQuery = searchParams.get('q') || '';
 
 <<<<<<< HEAD
+<<<<<<< HEAD
   // 🛡️ FONCTION ULTRA-SÉCURISÉE: Génération de slug JAMAIS undefined
   const generateUltraSecureSlug = useCallback((product: any): string | null => {
     // ÉTAPE 1: Validation stricte du produit
@@ -87,10 +88,16 @@ const HomePage: React.FC = () => {
     
     // 1. Vérifier slug existant avec validation ultra-stricte
 >>>>>>> 1208232 (🔧 fix: ULTIMATE slug validation - prevent all undefined URLs with triple validation)
+=======
+  // 🔧 FONCTION: Génération de slug sécurisée (sans logs debug)
+  const generateSecureSlug = useCallback((product: any): string => {
+    // 1. Vérifier slug existant
+>>>>>>> 9ffe943 (🔧 fix: Correction erreur syntaxe HomePage ligne 574 - version production prête)
     if (product.slug && 
         typeof product.slug === 'string' && 
         product.slug.trim() !== '' && 
         product.slug !== 'undefined' && 
+<<<<<<< HEAD
 <<<<<<< HEAD
         product.slug !== 'null' &&
         !product.slug.includes('undefined') &&
@@ -109,9 +116,13 @@ const HomePage: React.FC = () => {
       const cleanSlug = product.slug.trim();
       console.log('✅ HomePage - Slug existant validé:', cleanSlug);
       return cleanSlug;
+=======
+        product.slug !== 'null') {
+      return product.slug.trim();
+>>>>>>> 9ffe943 (🔧 fix: Correction erreur syntaxe HomePage ligne 574 - version production prête)
     }
     
-    // 2. Générer depuis le titre avec validation
+    // 2. Générer depuis le titre
     const title = product.nameKey || product.title || '';
     if (title && typeof title === 'string' && title.trim() !== '') {
 >>>>>>> 1208232 (🔧 fix: ULTIMATE slug validation - prevent all undefined URLs with triple validation)
@@ -125,6 +136,7 @@ const HomePage: React.FC = () => {
         .replace(/^-|-$/g, '');         // Supprimer tirets début/fin
       
 <<<<<<< HEAD
+<<<<<<< HEAD
       if (generatedSlug && generatedSlug !== 'undefined' && generatedSlug.length > 2) {
 =======
       if (generatedSlug && 
@@ -133,6 +145,9 @@ const HomePage: React.FC = () => {
           generatedSlug.length > 0) {
         console.log('✅ HomePage - Slug généré depuis titre:', generatedSlug);
 >>>>>>> 1208232 (🔧 fix: ULTIMATE slug validation - prevent all undefined URLs with triple validation)
+=======
+      if (generatedSlug && generatedSlug !== 'undefined' && generatedSlug.length > 0) {
+>>>>>>> 9ffe943 (🔧 fix: Correction erreur syntaxe HomePage ligne 574 - version production prête)
         return generatedSlug;
       }
     }
@@ -149,21 +164,19 @@ const HomePage: React.FC = () => {
 =======
     // 3. Utiliser l'ID comme fallback
     const id = product.id || product.objectID || '';
-    if (id && 
-        typeof id === 'string' && 
-        id !== 'undefined' && 
-        id !== 'null' && 
-        id.trim() !== '') {
-      const idSlug = `product-${id}`;
-      console.log('⚠️ HomePage - Slug généré depuis ID:', idSlug);
-      return idSlug;
+    if (id && typeof id === 'string' && id !== 'undefined' && id.trim() !== '') {
+      return `product-${id}`;
     }
     
     // 4. Fallback ultime d'urgence
+<<<<<<< HEAD
     const emergencySlug = `emergency-product-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     console.error('🚨 HomePage - Slug d\'urgence généré:', emergencySlug);
     return emergencySlug;
 >>>>>>> 1208232 (🔧 fix: ULTIMATE slug validation - prevent all undefined URLs with triple validation)
+=======
+    return `product-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+>>>>>>> 9ffe943 (🔧 fix: Correction erreur syntaxe HomePage ligne 574 - version production prête)
   }, []);
 
   // SEO dynamique
@@ -215,8 +228,6 @@ const HomePage: React.FC = () => {
       const results = await fetchRealProducts('');
       const processingTime = Date.now() - startTime;
       
-      console.log('📦 HomePage - Produits initiaux chargés:', results.length);
-      
       setAllResults(results);
       setSearchResults(paginateResults(results, 0));
       setOriginalResults(results);
@@ -252,8 +263,6 @@ const HomePage: React.FC = () => {
       const startTime = Date.now();
       const results = await fetchRealProducts(searchQuery);
       const processingTime = Date.now() - startTime;
-      
-      console.log('🔍 HomePage - Résultats recherche:', results.length);
       
       setAllResults(results);
       setSearchResults(paginateResults(results, page));
@@ -638,6 +647,7 @@ const HomePage: React.FC = () => {
 <<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
                   // 🚨 VALIDATION ULTRA-STRICTE - NE JAMAIS RENDRE SI PROBLÉMATIQUE
                   if (!product || !product.id) {
                     return null; // Skip complètement
@@ -690,12 +700,18 @@ const HomePage: React.FC = () => {
 =======
                   // 🔧 FIX CRITIQUE: Validation stricte des données produit avec logs ultra-détaillés
 >>>>>>> 1208232 (🔧 fix: ULTIMATE slug validation - prevent all undefined URLs with triple validation)
+=======
+                  // Validation stricte des données produit
+>>>>>>> 9ffe943 (🔧 fix: Correction erreur syntaxe HomePage ligne 574 - version production prête)
                   if (!product || !product.id) {
-                    console.warn('⚠️ HomePage - Produit invalide ignoré:', product);
+                    if (import.meta.env.DEV) {
+                      console.warn('Produit invalide ignoré:', product);
+                    }
                     return null;
                   }
 >>>>>>> 6fa9476 (🔧 fix: Ultra-secure slug validation to prevent undefined URLs)
 
+<<<<<<< HEAD
                   // 🚨 GÉNÉRATION DE SLUG ULTRA-SÉCURISÉE
                   const secureSlug = generateUltraSecureSlug(product);
 
@@ -789,20 +805,47 @@ const HomePage: React.FC = () => {
                     finalSlug: adaptedHit.slug
                   });
 
+=======
+                  // Générer slug sécurisé
+                  const secureSlug = generateSecureSlug(product);
+                  
+>>>>>>> 9ffe943 (🔧 fix: Correction erreur syntaxe HomePage ligne 574 - version production prête)
                   return (
-                    <div 
-                      key={`product-${product.id}-${index}`}
-                      className="animate-fade-in-up"
-                      style={{ 
-                        animationDelay: `${index * 50}ms`,
-                        animationFillMode: 'both'
+                    <ProductHit
+                      key={`${product.id}-${index}`}
+                      hit={{
+                        objectID: product.id,
+                        title: product.title || 'Produit sans titre',
+                        description: product.description || '',
+                        brand: product.brand || '',
+                        category: product.category || '',
+                        image_url: product.image_url || '',
+                        eco_score: product.eco_score || 0,
+                        slug: secureSlug,
+                        tags: product.tags || [],
+                        zones_dispo: product.zones_dispo || [],
+                        verified_status: product.verified_status || 'manual_review'
                       }}
-                    >
-                      <ProductHit hit={adaptedHit} />
-                    </div>
+                      viewMode={viewMode}
+                      onProductClick={(slug: string) => {
+                        // Validation finale avant navigation
+                        if (slug && slug !== 'undefined' && slug.trim() !== '') {
+                          if (import.meta.env.DEV) {
+                            console.log('Navigation vers:', `/product/${slug}`);
+                          }
+                          navigate(`/product/${slug}`);
+                        } else {
+                          console.error('Navigation bloquée - slug invalide:', slug);
+                        }
+                      }}
+                    />
                   );
+<<<<<<< HEAD
                 }).filter(Boolean)}
 >>>>>>> 6fa9476 (🔧 fix: Ultra-secure slug validation to prevent undefined URLs)
+=======
+                })}
+>>>>>>> 9ffe943 (🔧 fix: Correction erreur syntaxe HomePage ligne 574 - version production prête)
               </div>
 
               {/* Pagination */}

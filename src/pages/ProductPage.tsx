@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
-<<<<<<< HEAD
-import { ArrowLeft, Leaf, Users, Shield } from "lucide-react";
-=======
+import { useParams, useNavigate } from "react-router-dom";
 import { 
   ArrowLeft, 
   Leaf, 
@@ -12,22 +9,17 @@ import {
   Heart,
   Star,
   TrendingUp,
-  Award,
   MapPin,
   Calendar,
   CheckCircle,
   AlertCircle
 } from "lucide-react";
->>>>>>> 3ae457d (🎉 initial: Ecolojia frontend with SEO and bug fixes)
 
 import ConfidenceBadge from "../components/ConfidenceBadge";
 import PartnerLinks from "../components/PartnerLinks";
 import SimilarProductsCarousel from "../components/SimilarProductsCarousel";
-<<<<<<< HEAD
-=======
 import { CATEGORIES, CategoryType } from '../types/categories';
 
->>>>>>> 3ae457d (🎉 initial: Ecolojia frontend with SEO and bug fixes)
 interface Partner {
   id: string;
   name: string;
@@ -62,75 +54,47 @@ interface Product {
   resume_fr?: string;
   partnerLinks: PartnerLink[];
   enriched_at?: string;
-<<<<<<< HEAD
-=======
   zones_dispo?: string[];
->>>>>>> 3ae457d (🎉 initial: Ecolojia frontend with SEO and bug fixes)
 }
 
-const fallbackImage =
-  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600' viewBox='0 0 600 600'%3E%3Crect width='600' height='600' fill='%23f0f0f0'/%3E%3Ctext x='50%25' y='50%25' font-size='24' fill='%23999' text-anchor='middle' dy='0.3em'%3EProduit%3C/text%3E%3C/svg%3E";
+const fallbackImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600' viewBox='0 0 600 600'%3E%3Crect width='600' height='600' fill='%23f0f0f0'/%3E%3Ctext x='50%25' y='50%25' font-size='24' fill='%23999' text-anchor='middle' dy='0.3em'%3EProduit%3C/text%3E%3C/svg%3E";
 
-<<<<<<< HEAD
-const API_BASE_URL = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
-=======
 const API_BASE_URL = import.meta.env.VITE_API_URL || "https://ecolojia-backendv1.onrender.com";
->>>>>>> 3ae457d (🎉 initial: Ecolojia frontend with SEO and bug fixes)
 
 const ProductPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const location = useLocation();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-<<<<<<< HEAD
-=======
-  
-  // ✅ NOUVEAUX ÉTATS
   const [activeTab, setActiveTab] = useState<'overview' | 'score' | 'analysis'>('overview');
   const [isFavorite, setIsFavorite] = useState(false);
   const [shareMessage, setShareMessage] = useState('');
->>>>>>> 3ae457d (🎉 initial: Ecolojia frontend with SEO and bug fixes)
 
   useEffect(() => {
-    // 🚨 VALIDATION ULTRA-STRICTE DU SLUG EN PREMIER
-    console.log('🔍 ProductPage - Raw params:', { slug });
-    
-    if (!slug) {
-      console.error('🚨 ERREUR: Aucun slug fourni');
-      setError("Slug manquant");
-      setLoading(false);
-      return;
-    }
-
-    // 🚨 VALIDATION CRITIQUE: Vérifier les valeurs invalides
-    if (slug === 'undefined' || slug === 'null' || slug.trim() === '') {
-      console.error('🚨 ERREUR: Slug invalide détecté:', slug);
-      setError('Produit introuvable - identifiant invalide');
-      setLoading(false);
-      return;
-    }
-
-    // 🚨 REDIRECTION IMMÉDIATE SI SLUG CONTIENT 'undefined'
-    if (slug.includes('undefined') || slug === 'not-found') {
-      console.error('🚨 Redirection: Slug contient undefined, retour accueil');
+    if (!slug || slug === 'undefined' || slug === 'null' || slug.trim() === '' || slug.includes('undefined')) {
+      console.error('🚨 Slug invalide :', slug);
       navigate('/', { replace: true });
       return;
     }
-
-    console.log('✅ ProductPage - Slug valide, chargement:', slug);
 
     const controller = new AbortController();
 
     const fetchProduct = async () => {
       try {
-        // 🔧 CONSTRUCTION SÉCURISÉE DE L'URL
-        const finalUrl = `${API_BASE_URL}/api/products/${encodeURIComponent(slug)}`;
-        console.log('🔍 URL finale construite:', finalUrl);
+        setLoading(true);
+        setError(null);
         
-        const response = await fetch(finalUrl, { signal: controller.signal });
+        const finalUrl = `${API_BASE_URL}/api/products/${encodeURIComponent(slug)}`;
+        const response = await fetch(finalUrl, { 
+          signal: controller.signal,
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        });
 
         if (!response.ok) {
           throw new Error(response.status === 404 ? "Produit non trouvé" : "Erreur serveur");
@@ -141,20 +105,24 @@ const ProductPage: React.FC = () => {
 
         const normalized: Product = {
           ...rawProduct,
+          id: rawProduct.id,
+          title: rawProduct.title || 'Produit sans titre',
+          description: rawProduct.description || 'Description non disponible',
           eco_score: typeof rawProduct.eco_score === "string" ? parseFloat(rawProduct.eco_score) : rawProduct.eco_score,
-          ai_confidence: typeof rawProduct.ai_confidence === "string" ? parseFloat(rawProduct.ai_confidence) : rawProduct.ai_confidence
+          ai_confidence: typeof rawProduct.ai_confidence === "string" ? parseFloat(rawProduct.ai_confidence) : rawProduct.ai_confidence,
+          partnerLinks: rawProduct.partnerLinks || [],
+          tags: rawProduct.tags || [],
+          zones_dispo: rawProduct.zones_dispo || []
         };
 
-        console.log('✅ Produit chargé avec succès:', normalized.title);
         setProduct(normalized);
-<<<<<<< HEAD
-=======
-        
-        // ✅ Vérifier favoris
-        const favorites = JSON.parse(localStorage.getItem('ecolojia_favorites') || '[]');
-        setIsFavorite(favorites.includes(normalized.id));
-        
->>>>>>> 3ae457d (🎉 initial: Ecolojia frontend with SEO and bug fixes)
+
+        try {
+          const favorites = JSON.parse(localStorage.getItem('ecolojia_favorites') || '[]');
+          setIsFavorite(favorites.includes(normalized.id));
+        } catch (e) {
+          console.warn('Erreur lecture favoris:', e);
+        }
       } catch (err) {
         if (err instanceof DOMException && err.name === "AbortError") return;
         console.error('❌ Erreur chargement produit:', err);
@@ -168,23 +136,19 @@ const ProductPage: React.FC = () => {
     return () => controller.abort();
   }, [slug, navigate]);
 
-<<<<<<< HEAD
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin h-10 w-10 border-4 border-eco-leaf rounded-full border-t-transparent" />
-=======
-  // ✅ NOUVELLES FONCTIONS
   const toggleFavorite = () => {
     if (!product) return;
     
-    const favorites = JSON.parse(localStorage.getItem('ecolojia_favorites') || '[]');
-    const newFavorites = isFavorite 
-      ? favorites.filter((id: string) => id !== product.id)
-      : [...favorites, product.id];
-    
-    localStorage.setItem('ecolojia_favorites', JSON.stringify(newFavorites));
-    setIsFavorite(!isFavorite);
+    try {
+      const favorites = JSON.parse(localStorage.getItem('ecolojia_favorites') || '[]');
+      const newFavorites = isFavorite 
+        ? favorites.filter((id: string) => id !== product.id)
+        : [...favorites, product.id];
+      localStorage.setItem('ecolojia_favorites', JSON.stringify(newFavorites));
+      setIsFavorite(!isFavorite);
+    } catch (e) {
+      console.warn('Erreur sauvegarde favoris:', e);
+    }
   };
 
   const shareProduct = async () => {
@@ -229,7 +193,6 @@ const ProductPage: React.FC = () => {
           <div className="animate-spin h-12 w-12 border-4 border-eco-leaf rounded-full border-t-transparent mx-auto mb-4" />
           <p className="text-gray-600">Chargement du produit...</p>
         </div>
->>>>>>> 3ae457d (🎉 initial: Ecolojia frontend with SEO and bug fixes)
       </div>
     );
   }
@@ -237,10 +200,7 @@ const ProductPage: React.FC = () => {
   if (error || !product) {
     return (
       <div className="text-center py-20">
-<<<<<<< HEAD
-=======
         <AlertCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
->>>>>>> 3ae457d (🎉 initial: Ecolojia frontend with SEO and bug fixes)
         <h1 className="text-3xl font-bold text-red-600 mb-4">Erreur</h1>
         <p className="text-gray-600 mb-6">{error ?? "Produit introuvable"}</p>
         <button
@@ -254,27 +214,12 @@ const ProductPage: React.FC = () => {
     );
   }
 
-<<<<<<< HEAD
-  return (
-    <div className="max-w-5xl mx-auto px-4 py-12">
-      <button
-        onClick={() => navigate("/")}
-        className="flex items-center gap-2 text-eco-text/60 hover:text-eco-leaf mb-6"
-      >
-        <ArrowLeft className="w-4 h-4" />
-        Retour
-      </button>
-
-      <div className="grid lg:grid-cols-2 gap-10">
-        <div>
-          <div className="aspect-square bg-gray-100 rounded-xl overflow-hidden border border-eco-leaf/20">
-=======
   const categoryConfig = getCategoryConfig();
   const scoreLevel = getScoreLevel(product.eco_score);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      {/* ✅ HEADER AMÉLIORÉ */}
+      {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <button
           onClick={() => navigate("/")}
@@ -307,7 +252,7 @@ const ProductPage: React.FC = () => {
         </div>
       </div>
 
-      {/* ✅ BREADCRUMB */}
+      {/* Breadcrumb */}
       <nav className="mb-8">
         <div className="flex items-center space-x-2 text-sm text-gray-600">
           <button onClick={() => navigate('/')} className="hover:text-eco-leaf">Accueil</button>
@@ -328,10 +273,9 @@ const ProductPage: React.FC = () => {
       </nav>
 
       <div className="grid lg:grid-cols-2 gap-12 mb-12">
-        {/* ✅ IMAGE AMÉLIORÉE */}
+        {/* Image */}
         <div className="space-y-4">
           <div className="aspect-square bg-gray-100 rounded-xl overflow-hidden border border-eco-leaf/20 relative">
->>>>>>> 3ae457d (🎉 initial: Ecolojia frontend with SEO and bug fixes)
             <img
               src={product.image_url || fallbackImage}
               alt={product.title}
@@ -340,74 +284,6 @@ const ProductPage: React.FC = () => {
                 (e.currentTarget as HTMLImageElement).src = fallbackImage;
               }}
             />
-<<<<<<< HEAD
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          <div>
-            {product.brand && (
-              <p className="text-sm text-gray-500 uppercase">{product.brand}</p>
-            )}
-            <h1 className="text-3xl font-bold text-eco-text mb-2">{product.title}</h1>
-
-            <div className="flex items-center gap-4 mt-2">
-              <ConfidenceBadge
-                pct={product.confidence_pct ?? 0}
-                color={product.confidence_color ?? "yellow"}
-              />
-              {product.verified_status === "verified" && (
-                <div className="flex items-center gap-1 text-eco-leaf text-sm font-medium">
-                  <Shield className="w-4 h-4" />
-                  Vérifié
-                </div>
-              )}
-            </div>
-          </div>
-
-          {typeof product.eco_score === "number" && (
-            <div className="bg-eco-leaf/10 p-4 rounded-lg border border-eco-leaf/20">
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-eco-text">Score écologique</p>
-                <span className="font-bold text-eco-text">
-                  {(product.eco_score * 100).toFixed(0)}%
-                </span>
-              </div>
-              <div className="w-full bg-eco-leaf/20 h-3 mt-2 rounded-full overflow-hidden">
-                <div
-                  className="h-3 bg-eco-leaf rounded-full transition-all duration-500"
-                  style={{ width: `${product.eco_score * 100}%` }}
-                ></div>
-              </div>
-            </div>
-          )}
-
-          <p className="text-gray-700">{product.description}</p>
-
-          {product.tags?.length > 0 && (
-            <div>
-              <h3 className="text-sm font-semibold text-gray-800 mb-2">Étiquettes</h3>
-              <div className="flex flex-wrap gap-2">
-                {product.tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="px-3 py-1 bg-eco-leaf/10 border border-eco-leaf/20 text-sm rounded-full text-eco-text"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {product.resume_fr && (
-            <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
-              <div className="flex items-start gap-3">
-                <Users className="w-5 h-5 text-blue-600 mt-1" />
-                <div>
-                  <h4 className="font-semibold text-blue-900 mb-1">Analyse IA</h4>
-                  <p className="text-blue-800 text-sm">{product.resume_fr}</p>
-=======
             {product.verified_status === "verified" && (
               <div className="absolute top-4 right-4 bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium flex items-center space-x-1">
                 <CheckCircle className="h-4 w-4" />
@@ -417,7 +293,7 @@ const ProductPage: React.FC = () => {
           </div>
         </div>
 
-        {/* ✅ INFORMATIONS ENRICHIES */}
+        {/* Informations produit */}
         <div className="space-y-6">
           <div>
             {/* Catégorie */}
@@ -438,7 +314,7 @@ const ProductPage: React.FC = () => {
             {/* Titre */}
             <h1 className="text-3xl font-bold text-eco-text mb-4">{product.title}</h1>
 
-            {/* Score principal amélioré */}
+            {/* Score principal */}
             {typeof product.eco_score === "number" && (
               <div className="bg-gradient-to-r from-eco-leaf/10 to-green-100 p-6 rounded-xl border border-eco-leaf/20 mb-6">
                 <div className="flex items-center justify-between mb-3">
@@ -479,14 +355,14 @@ const ProductPage: React.FC = () => {
               )}
             </div>
 
-            {/* Tags améliorés */}
+            {/* Tags */}
             {product.tags?.length > 0 && (
               <div className="mb-6">
                 <h3 className="text-sm font-semibold text-gray-800 mb-3">Caractéristiques</h3>
                 <div className="flex flex-wrap gap-2">
-                  {product.tags.map((tag) => (
+                  {product.tags.map((tag, index) => (
                     <span
-                      key={tag}
+                      key={`${tag}-${index}`}
                       className="px-3 py-1 bg-eco-leaf/10 border border-eco-leaf/20 text-sm rounded-full text-eco-text font-medium hover:bg-eco-leaf/20 transition-colors"
                     >
                       {tag}
@@ -519,7 +395,7 @@ const ProductPage: React.FC = () => {
         </div>
       </div>
 
-      {/* ✅ ONGLETS DÉTAILS */}
+      {/* Onglets détails */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-12">
         {/* Navigation onglets */}
         <div className="border-b border-gray-200">
@@ -560,9 +436,9 @@ const ProductPage: React.FC = () => {
                     Critères {categoryConfig.name.toLowerCase()}
                   </h4>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    {categoryConfig.criteria.map(criterion => (
+                    {categoryConfig.criteria.map((criterion, index) => (
                       <div
-                        key={criterion}
+                        key={`${criterion}-${index}`}
                         className="bg-eco-leaf/10 text-eco-leaf px-3 py-2 rounded-lg text-sm font-medium text-center border border-eco-leaf/20"
                       >
                         {criterion}
@@ -594,36 +470,6 @@ const ProductPage: React.FC = () => {
                       ></div>
                     </div>
                   </div>
-
-                  {/* Breakdown par dimensions */}
-                  {categoryConfig?.weights && (
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-3">Répartition par dimension</h4>
-                      <div className="space-y-3">
-                        {Object.entries(categoryConfig.weights).map(([dimension, weight]) => {
-                          const dimensionScore = (product.eco_score || 0) * 100 * (weight || 0);
-                          return (
-                            <div key={dimension} className="flex items-center justify-between">
-                              <div className="flex items-center space-x-3">
-                                <span className="text-sm font-medium capitalize">
-                                  {dimension === 'health' ? 'Santé' :
-                                   dimension === 'environmental' ? 'Environnement' :
-                                   dimension === 'social' ? 'Social' :
-                                   dimension === 'durability' ? 'Durabilité' : dimension}
-                                </span>
-                                <span className="text-xs text-gray-500">
-                                  (poids: {((weight || 0) * 100).toFixed(0)}%)
-                                </span>
-                              </div>
-                              <span className="text-sm font-bold">
-                                {dimensionScore.toFixed(0)}%
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
                 </div>
               )}
             </div>
@@ -672,7 +518,6 @@ const ProductPage: React.FC = () => {
                        'Rejeté'}
                     </div>
                   </div>
->>>>>>> 3ae457d (🎉 initial: Ecolojia frontend with SEO and bug fixes)
                 </div>
               </div>
             </div>
@@ -680,30 +525,21 @@ const ProductPage: React.FC = () => {
         </div>
       </div>
 
-<<<<<<< HEAD
-      <div className="mt-12 border-t pt-6">
-        <PartnerLinks partnerLinks={product.partnerLinks} productTitle={product.title} />
-      </div>
+      {/* Liens partenaires */}
+      {product.partnerLinks && product.partnerLinks.length > 0 && (
+        <div className="border-t pt-6 mb-12">
+          <PartnerLinks partnerLinks={product.partnerLinks} productTitle={product.title} />
+        </div>
+      )}
 
-      {/* ✅ Bloc suggestions similaires */}
-      <div className="mt-12 border-t pt-6">
-=======
-      {/* ✅ LIENS PARTENAIRES (inchangé) */}
-      <div className="border-t pt-6 mb-12">
-        <PartnerLinks partnerLinks={product.partnerLinks} productTitle={product.title} />
-      </div>
-
-      {/* ✅ SUGGESTIONS SIMILAIRES (inchangé) */}
-      <div className="border-t pt-6">
->>>>>>> 3ae457d (🎉 initial: Ecolojia frontend with SEO and bug fixes)
-        <SimilarProductsCarousel productId={product.id} />
-      </div>
+      {/* Suggestions similaires - SEULEMENT SI PRODUCT.ID VALIDE */}
+      {product.id && product.id !== 'undefined' && product.id.trim() !== '' && (
+        <div className="border-t pt-6">
+          <SimilarProductsCarousel productId={product.id} />
+        </div>
+      )}
     </div>
   );
 };
 
-<<<<<<< HEAD
 export default ProductPage;
-=======
-export default ProductPage;
->>>>>>> 3ae457d (🎉 initial: Ecolojia frontend with SEO and bug fixes)

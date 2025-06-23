@@ -19,23 +19,24 @@ export class APIInterceptor {
     window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
       const url = typeof input === 'string' ? input : input.toString();
       
-      // 🚨 BLOQUER TOUTES LES REQUÊTES AVEC 'undefined' (SÉCURITÉ CRITIQUE)
-      if (url.includes('/products/undefined') || url.includes('undefined')) {
-        // Log d'erreur critique en production
-        console.error('🚨 SECURITY: Blocked undefined URL request:', {
-          url,
-          timestamp: new Date().toISOString()
-        });
+      // 🚨 BLOQUER TOUS LES UNDEFINED
+      const hasUndefined = url.includes('/undefined') || 
+                          url.includes('undefined') || 
+                          url.endsWith('/undefined') ||
+                          url.includes('/products/undefined') ||
+                          url.match(/\/products\/undefined($|\?)/);
+      
+      if (hasUndefined) {
+        // Rediriger immédiatement vers l'accueil
+        if (window.location.pathname.includes('undefined')) {
+          window.location.replace('/');
+        }
         
-        // Rediriger vers l'accueil pour éviter les erreurs
-        setTimeout(() => {
-          window.location.href = '/';
-        }, 100);
-        
-        // Retourner une réponse d'erreur propre
-        return new Response(
+        // Retourner une erreur 400 propre
+        return Promise.resolve(new Response(
           JSON.stringify({ 
-            error: 'Invalid URL parameter',
+            error: 'Invalid product identifier',
+            message: 'Product not found',
             redirect: true
           }),
           { 
@@ -43,15 +44,7 @@ export class APIInterceptor {
             statusText: 'Bad Request',
             headers: { 'Content-Type': 'application/json' }
           }
-        );
-      }
-
-      // 🔍 Log minimal des requêtes API en développement uniquement
-      if (import.meta.env.DEV && url.includes('/api/')) {
-        console.log('📡 API Request:', {
-          url: url.split('/').pop(), // Juste le endpoint
-          method: init?.method || 'GET'
-        });
+        ));
       }
 
       // Continuer avec la requête normale

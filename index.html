@@ -7,7 +7,15 @@
     <title>Ecolojia - Moteur de recherche écoresponsable</title>
     
     <!-- 🛡️ PROTECTION ANTI-UNDEFINED - REDIRECTION IMMÉDIATE -->
-    <script>if(location.pathname.includes('undefined')||location.pathname.includes('/undefined'))location.href='/';</script>
+    <script>
+    if(location.pathname.includes('undefined') || location.pathname.includes('/undefined') || location.pathname === '/product/undefined') {
+      console.log('🚨 Redirection undefined détectée');
+      location.href='/';
+    }
+    </script>
+    
+    <!-- Cache bust: 2025-01-23-v2 -->
+    <meta name="cache-bust" content="20250123-v2">
     
     <!-- Plausible Analytics - Respectueux de la vie privée, sans cookies -->
     <script defer data-domain="ecolojia.com" src="https://plausible.io/js/script.js"></script>

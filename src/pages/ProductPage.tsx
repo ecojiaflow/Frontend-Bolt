@@ -75,16 +75,29 @@ const ProductPage: React.FC = () => {
   const [isFavorite, setIsFavorite] = useState(false);
   const [shareMessage, setShareMessage] = useState('');
 
+  // 🚨 VALIDATION IMMÉDIATE DU SLUG - AVANT TOUT useEffect
   useEffect(() => {
-    // 🚨 VALIDATION ABSOLUE - ARRÊTER TOUT SI SLUG INVALIDE
-    if (!slug || slug === 'undefined' || slug === 'null' || slug.trim() === '' || slug.includes('undefined')) {
-      console.error('🚨 ProductPage: Slug invalide détecté:', slug);
-      setError('Produit introuvable - identifiant invalide');
-      setLoading(false);
-      return; // STOP - ne pas faire de requête
+    console.log('🔍 ProductPage useEffect - slug reçu:', slug);
+    
+    // 🚨 VALIDATION ABSOLUE - REDIRECTION IMMÉDIATE SI UNDEFINED
+    if (!slug) {
+      console.error('🚨 ProductPage: Aucun slug fourni, redirection');
+      navigate('/', { replace: true });
+      return;
     }
 
-    // Créer AbortController pour annuler la requête si le composant se démonte
+    if (slug === 'undefined' || 
+        slug === 'null' || 
+        slug.includes('undefined') ||
+        slug.trim() === '') {
+      console.error('🚨 ProductPage: Slug invalide détecté, redirection:', slug);
+      navigate('/', { replace: true });
+      return;
+    }
+
+    // 🛡️ SI ON ARRIVE ICI, LE SLUG EST VALIDE
+    console.log('✅ ProductPage: Slug valide, chargement du produit:', slug);
+
     const controller = new AbortController();
 
     const fetchProduct = async () => {
@@ -92,13 +105,15 @@ const ProductPage: React.FC = () => {
         setLoading(true);
         setError(null);
         
-        // 🛡️ Construction ultra-sécurisée de l'URL
+        // 🔒 CONSTRUCTION ULTRA-SÉCURISÉE DE L'URL
         const safeSlug = encodeURIComponent(slug);
         const finalUrl = `${API_BASE_URL}/api/products/${safeSlug}`;
         
-        // 🚨 DERNIÈRE VÉRIFICATION AVANT LA REQUÊTE
+        console.log('📡 Requête vers:', finalUrl);
+        
+        // 🚨 VÉRIFICATION FINALE DE L'URL AVANT REQUÊTE
         if (finalUrl.includes('/undefined') || finalUrl.includes('undefined')) {
-          throw new Error('URL invalide contenant undefined');
+          throw new Error('URL invalide générée');
         }
         
         const response = await fetch(finalUrl, { 
@@ -137,6 +152,7 @@ const ProductPage: React.FC = () => {
           zones_dispo: rawProduct.zones_dispo || []
         };
 
+        console.log('✅ Produit chargé:', normalized.title);
         setProduct(normalized);
         
         // Vérifier favoris
@@ -149,7 +165,7 @@ const ProductPage: React.FC = () => {
         
       } catch (err) {
         if (err instanceof DOMException && err.name === "AbortError") {
-          return; // Requête annulée, ne pas afficher d'erreur
+          return;
         }
         
         console.error('❌ Erreur chargement produit:', err);
@@ -161,11 +177,10 @@ const ProductPage: React.FC = () => {
 
     fetchProduct();
 
-    // Cleanup: annuler la requête si le composant se démonte
     return () => {
       controller.abort();
     };
-  }, [slug]); // Dépendance uniquement sur slug
+  }, [slug, navigate]);
 
   // Fonctions utilitaires
   const toggleFavorite = () => {
@@ -567,8 +582,8 @@ const ProductPage: React.FC = () => {
         </div>
       )}
 
-      {/* Suggestions similaires - Seulement si product.id est valide */}
-      {product.id && product.id !== 'undefined' && (
+      {/* Suggestions similaires - SEULEMENT SI PRODUCT.ID VALIDE */}
+      {product.id && product.id !== 'undefined' && product.id.trim() !== '' && (
         <div className="border-t pt-6">
           <SimilarProductsCarousel productId={product.id} />
         </div>

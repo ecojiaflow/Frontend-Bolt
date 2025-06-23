@@ -1,8 +1,31 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, Leaf, Search, ShoppingBag, BookOpen, Home, Info, BarChart3 } from 'lucide-react';
+import { Menu, X, Leaf, Search, ShoppingBag, BookOpen, Home, Info, BarChart3, Globe } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import LanguageSelector from './LanguageSelector';
+
+// Nouveau composant LanguageSelector intégré
+const LanguageSelector: React.FC = () => {
+  const { i18n } = useTranslation();
+
+  const toggleLanguage = () => {
+    const newLang = i18n.language === 'fr' ? 'en' : 'fr';
+    console.log('🌍 Changement langue:', i18n.language, '→', newLang);
+    i18n.changeLanguage(newLang);
+  };
+
+  return (
+    <button
+      onClick={toggleLanguage}
+      className="flex items-center gap-2 px-3 py-2 text-eco-text hover:text-eco-leaf transition-colors rounded-lg hover:bg-eco-leaf/10"
+      aria-label="Changer de langue"
+    >
+      <Globe className="h-4 w-4" />
+      <span className="text-sm font-medium">
+        {i18n.language === 'fr' ? 'EN' : 'FR'}
+      </span>
+    </button>
+  );
+};
 
 const Navbar: React.FC = () => {
   const { t } = useTranslation();

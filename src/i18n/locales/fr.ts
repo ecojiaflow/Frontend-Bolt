@@ -6,7 +6,7 @@ export const fr = {
     about: 'À propos',
     blog: 'Blog',
     search: 'Rechercher',
-    searchPlaceholder: 'Rechercher des produits éco-responsables...',
+    searchPlaceholder: 'Rechercher shampoing bio, jean éthique, miel local...',
     allCategories: 'Tous',
     verified: 'Produit Vérifié',
     description: 'Description',
@@ -29,7 +29,15 @@ export const fr = {
     productsFound_other: '{{count}} produits trouvés',
     noResults: 'Aucun produit ne correspond à votre recherche.',
     backToHome: '← Retour à l\'accueil',
-    // Nouveaux ajouts pour les filtres
+    
+    // Clés pour les filtres et recherche
+    searchingAlgolia: 'Recherche en cours...',
+    discoverProducts: 'Découvrir nos produits',
+    correspondingSearch: 'correspondant à votre recherche',
+    available: 'disponibles',
+    filtered: 'filtré',
+    filtered_plural: 'filtrés',
+    filters: 'Filtres',
     filterResults: 'Filtrer les résultats',
     ecoScoreMin: 'Score écologique minimum',
     allScores: 'Tous les scores',
@@ -43,24 +51,18 @@ export const fr = {
     usa: 'États-Unis',
     aiConfidence: 'Confiance IA',
     allLevels: 'Tous les niveaux',
-    certified: 'Certifiée (80%+)',
-    validated: 'Validée (60%+)',
+    certified: 'Certifié (80%+)',
+    validated: 'Validé (60%+)',
     analyzing: 'En analyse (40%+)',
     hideFilters: 'Masquer les filtres',
     reset: 'Réinitialiser',
     apply: 'Appliquer',
     searchInProgress: 'Recherche en cours...',
-    searchingAlgolia: 'Recherche Algolia...',
-    discoverProducts: 'Découvrir nos produits',
-    resultsFoundMs: '{{count}} résultat{{count === 1 ? "" : "s"}} trouvé{{count === 1 ? "" : "s"}} en {{time}}ms',
-    filtered: 'filtré',
-    filtered_plural: 'filtrés',
-    correspondingSearch: 'correspondant à votre recherche',
-    available: 'disponibles',
     previous: 'Précédent',
     next: 'Suivant',
-    filters: 'Filtres',
-    // Ajouts pour ProductPage
+    resultsFoundMs: '{{count}} résultat{{count === 1 ? "" : "s"}} trouvé{{count === 1 ? "" : "s"}} en {{time}}ms',
+    
+    // Clés pour ProductPage
     productNotFound: 'Produit introuvable',
     productNotFoundDesc: 'Ce produit n\'existe pas ou n\'est plus disponible.',
     previousPage: 'Page précédente',
@@ -74,6 +76,7 @@ export const fr = {
     noAffiliateLink: 'Aucun lien affilié disponible',
     seeOtherProducts: 'Voir d\'autres produits'
   },
+  
   homepage: {
     hero: {
       title: 'Trouvez des produits <highlight>éco-responsables</highlight>',
@@ -98,6 +101,7 @@ export const fr = {
       }
     }
   },
+  
   about: {
     title: 'À propos d\'Ecolojia',
     subtitle: 'Le moteur de recherche qui révolutionne la découverte de produits écoresponsables grâce à l\'intelligence artificielle.',
@@ -166,6 +170,7 @@ export const fr = {
       response: 'Nous répondons dans les 48h • Suggestions et partenariats bienvenus'
     }
   },
+  
   privacy: {
     title: 'Politique de Confidentialité',
     lastUpdated: 'Dernière mise à jour',
@@ -236,6 +241,7 @@ export const fr = {
       description: 'Cette politique peut être mise à jour occasionnellement. Les modifications importantes seront signalées par un bannière sur le site. La date de dernière mise à jour est indiquée en haut de cette page.'
     }
   },
+  
   terms: {
     title: 'Conditions Générales d\'Utilisation',
     lastUpdated: 'Dernière mise à jour',
@@ -302,6 +308,7 @@ export const fr = {
       description: 'Les présentes CGU sont soumises au droit français. Tout litige sera soumis aux tribunaux compétents français.'
     }
   },
+  
   legal: {
     title: 'Mentions Légales',
     subtitle: 'Informations légales et coordonnées',
@@ -354,6 +361,7 @@ export const fr = {
       description: 'Ces mentions légales ont été mises à jour le {{date}} et peuvent être modifiées à tout moment. Il appartient à l\'utilisateur de vérifier régulièrement la version en vigueur.'
     }
   },
+  
   footer: {
     quickLinks: 'Liens rapides',
     legal: 'Mentions légales',
@@ -371,6 +379,7 @@ export const fr = {
     madeWith: 'Fait avec amour pour la planète',
     certifications: 'Nos certifications'
   },
+  
   accessibility: {
     searchInput: 'Rechercher des produits',
     searchButton: 'Rechercher',
@@ -380,9 +389,11 @@ export const fr = {
     allCategories: 'Toutes les catégories',
     ethicalScore: 'Score éthique'
   },
+  
   affiliate: {
     disclaimer: "Ceci est un lien d'affiliation. Nous pouvons percevoir une commission sur les achats."
   },
+  
   categories: {
     alimentaire: 'Alimentaire',
     mode: 'Mode',

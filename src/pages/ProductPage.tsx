@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { 
   ArrowLeft, 
   Leaf, 
@@ -9,7 +9,6 @@ import {
   Heart,
   Star,
   TrendingUp,
-  Award,
   MapPin,
   Calendar,
   CheckCircle,
@@ -66,7 +65,6 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || "https://ecolojia-backendv1
 const ProductPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const location = useLocation();
 
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
@@ -78,56 +76,83 @@ const ProductPage: React.FC = () => {
   const [shareMessage, setShareMessage] = useState('');
 
   useEffect(() => {
-    // 🚨 Validation stricte du slug
-    if (!slug) {
-      setError("Slug manquant");
-      setLoading(false);
-      return;
-    }
-
-    // Validation des valeurs invalides
-    if (slug === 'undefined' || slug === 'null' || slug.trim() === '') {
+    // 🚨 VALIDATION ABSOLUE - ARRÊTER TOUT SI SLUG INVALIDE
+    if (!slug || slug === 'undefined' || slug === 'null' || slug.trim() === '' || slug.includes('undefined')) {
+      console.error('🚨 ProductPage: Slug invalide détecté:', slug);
       setError('Produit introuvable - identifiant invalide');
       setLoading(false);
-      return;
+      return; // STOP - ne pas faire de requête
     }
 
-    // Redirection si slug contient 'undefined'
-    if (slug.includes('undefined') || slug === 'not-found') {
-      navigate('/', { replace: true });
-      return;
-    }
-
+    // Créer AbortController pour annuler la requête si le composant se démonte
     const controller = new AbortController();
 
     const fetchProduct = async () => {
       try {
-        // Construction sécurisée de l'URL
-        const finalUrl = `${API_BASE_URL}/api/products/${encodeURIComponent(slug)}`;
+        setLoading(true);
+        setError(null);
         
-        const response = await fetch(finalUrl, { signal: controller.signal });
+        // 🛡️ Construction ultra-sécurisée de l'URL
+        const safeSlug = encodeURIComponent(slug);
+        const finalUrl = `${API_BASE_URL}/api/products/${safeSlug}`;
+        
+        // 🚨 DERNIÈRE VÉRIFICATION AVANT LA REQUÊTE
+        if (finalUrl.includes('/undefined') || finalUrl.includes('undefined')) {
+          throw new Error('URL invalide contenant undefined');
+        }
+        
+        const response = await fetch(finalUrl, { 
+          signal: controller.signal,
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          }
+        });
 
         if (!response.ok) {
-          throw new Error(response.status === 404 ? "Produit non trouvé" : "Erreur serveur");
+          if (response.status === 404) {
+            throw new Error("Produit non trouvé");
+          }
+          throw new Error(`Erreur serveur: ${response.status}`);
         }
 
         const data: Product | { product: Product } = await response.json();
         const rawProduct = (data as any).product ?? data;
 
+        // Validation des données reçues
+        if (!rawProduct || !rawProduct.id) {
+          throw new Error("Données produit invalides");
+        }
+
         const normalized: Product = {
           ...rawProduct,
+          id: rawProduct.id,
+          title: rawProduct.title || 'Produit sans titre',
+          description: rawProduct.description || 'Description non disponible',
           eco_score: typeof rawProduct.eco_score === "string" ? parseFloat(rawProduct.eco_score) : rawProduct.eco_score,
-          ai_confidence: typeof rawProduct.ai_confidence === "string" ? parseFloat(rawProduct.ai_confidence) : rawProduct.ai_confidence
+          ai_confidence: typeof rawProduct.ai_confidence === "string" ? parseFloat(rawProduct.ai_confidence) : rawProduct.ai_confidence,
+          partnerLinks: rawProduct.partnerLinks || [],
+          tags: rawProduct.tags || [],
+          zones_dispo: rawProduct.zones_dispo || []
         };
 
         setProduct(normalized);
         
         // Vérifier favoris
-        const favorites = JSON.parse(localStorage.getItem('ecolojia_favorites') || '[]');
-        setIsFavorite(favorites.includes(normalized.id));
+        try {
+          const favorites = JSON.parse(localStorage.getItem('ecolojia_favorites') || '[]');
+          setIsFavorite(favorites.includes(normalized.id));
+        } catch (e) {
+          console.warn('Erreur lecture favoris:', e);
+        }
         
       } catch (err) {
-        if (err instanceof DOMException && err.name === "AbortError") return;
+        if (err instanceof DOMException && err.name === "AbortError") {
+          return; // Requête annulée, ne pas afficher d'erreur
+        }
+        
+        console.error('❌ Erreur chargement produit:', err);
         setError(err instanceof Error ? err.message : "Erreur lors du chargement");
       } finally {
         setLoading(false);
@@ -135,20 +160,28 @@ const ProductPage: React.FC = () => {
     };
 
     fetchProduct();
-    return () => controller.abort();
-  }, [slug, navigate]);
+
+    // Cleanup: annuler la requête si le composant se démonte
+    return () => {
+      controller.abort();
+    };
+  }, [slug]); // Dépendance uniquement sur slug
 
   // Fonctions utilitaires
   const toggleFavorite = () => {
     if (!product) return;
     
-    const favorites = JSON.parse(localStorage.getItem('ecolojia_favorites') || '[]');
-    const newFavorites = isFavorite 
-      ? favorites.filter((id: string) => id !== product.id)
-      : [...favorites, product.id];
-    
-    localStorage.setItem('ecolojia_favorites', JSON.stringify(newFavorites));
-    setIsFavorite(!isFavorite);
+    try {
+      const favorites = JSON.parse(localStorage.getItem('ecolojia_favorites') || '[]');
+      const newFavorites = isFavorite 
+        ? favorites.filter((id: string) => id !== product.id)
+        : [...favorites, product.id];
+      
+      localStorage.setItem('ecolojia_favorites', JSON.stringify(newFavorites));
+      setIsFavorite(!isFavorite);
+    } catch (e) {
+      console.warn('Erreur sauvegarde favoris:', e);
+    }
   };
 
   const shareProduct = async () => {
@@ -186,6 +219,7 @@ const ProductPage: React.FC = () => {
     return { label: 'À améliorer', color: 'red' };
   };
 
+  // Affichage du loading
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -197,6 +231,7 @@ const ProductPage: React.FC = () => {
     );
   }
 
+  // Affichage de l'erreur
   if (error || !product) {
     return (
       <div className="text-center py-20">
@@ -360,9 +395,9 @@ const ProductPage: React.FC = () => {
               <div className="mb-6">
                 <h3 className="text-sm font-semibold text-gray-800 mb-3">Caractéristiques</h3>
                 <div className="flex flex-wrap gap-2">
-                  {product.tags.map((tag) => (
+                  {product.tags.map((tag, index) => (
                     <span
-                      key={tag}
+                      key={`${tag}-${index}`}
                       className="px-3 py-1 bg-eco-leaf/10 border border-eco-leaf/20 text-sm rounded-full text-eco-text font-medium hover:bg-eco-leaf/20 transition-colors"
                     >
                       {tag}
@@ -436,9 +471,9 @@ const ProductPage: React.FC = () => {
                     Critères {categoryConfig.name.toLowerCase()}
                   </h4>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    {categoryConfig.criteria.map(criterion => (
+                    {categoryConfig.criteria.map((criterion, index) => (
                       <div
-                        key={criterion}
+                        key={`${criterion}-${index}`}
                         className="bg-eco-leaf/10 text-eco-leaf px-3 py-2 rounded-lg text-sm font-medium text-center border border-eco-leaf/20"
                       >
                         {criterion}
@@ -470,36 +505,6 @@ const ProductPage: React.FC = () => {
                       ></div>
                     </div>
                   </div>
-
-                  {/* Breakdown par dimensions */}
-                  {categoryConfig?.weights && (
-                    <div>
-                      <h4 className="font-semibold text-gray-900 mb-3">Répartition par dimension</h4>
-                      <div className="space-y-3">
-                        {Object.entries(categoryConfig.weights).map(([dimension, weight]) => {
-                          const dimensionScore = (product.eco_score || 0) * 100 * (weight || 0);
-                          return (
-                            <div key={dimension} className="flex items-center justify-between">
-                              <div className="flex items-center space-x-3">
-                                <span className="text-sm font-medium capitalize">
-                                  {dimension === 'health' ? 'Santé' :
-                                   dimension === 'environmental' ? 'Environnement' :
-                                   dimension === 'social' ? 'Social' :
-                                   dimension === 'durability' ? 'Durabilité' : dimension}
-                                </span>
-                                <span className="text-xs text-gray-500">
-                                  (poids: {((weight || 0) * 100).toFixed(0)}%)
-                                </span>
-                              </div>
-                              <span className="text-sm font-bold">
-                                {dimensionScore.toFixed(0)}%
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  )}
                 </div>
               )}
             </div>
@@ -556,14 +561,18 @@ const ProductPage: React.FC = () => {
       </div>
 
       {/* Liens partenaires */}
-      <div className="border-t pt-6 mb-12">
-        <PartnerLinks partnerLinks={product.partnerLinks} productTitle={product.title} />
-      </div>
+      {product.partnerLinks && product.partnerLinks.length > 0 && (
+        <div className="border-t pt-6 mb-12">
+          <PartnerLinks partnerLinks={product.partnerLinks} productTitle={product.title} />
+        </div>
+      )}
 
-      {/* Suggestions similaires */}
-      <div className="border-t pt-6">
-        <SimilarProductsCarousel productId={product.id} />
-      </div>
+      {/* Suggestions similaires - Seulement si product.id est valide */}
+      {product.id && product.id !== 'undefined' && (
+        <div className="border-t pt-6">
+          <SimilarProductsCarousel productId={product.id} />
+        </div>
+      )}
     </div>
   );
 };

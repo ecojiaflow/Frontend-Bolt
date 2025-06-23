@@ -65,31 +65,18 @@ const HomePage: React.FC = () => {
 
   const currentQuery = searchParams.get('q') || '';
 
-  // 🔧 FONCTION CRITIQUE: Génération et validation de slug ultra-sécurisée
-  const generateUltraSecureSlug = useCallback((product: any): string => {
-    console.log('🔧 HomePage - Génération slug ultra-sécurisée pour:', {
-      id: product.id,
-      slug: product.slug,
-      title: product.nameKey || product.title,
-      type: typeof product.slug,
-      timestamp: new Date().toISOString()
-    });
-    
-    // 1. Vérifier slug existant avec validation ultra-stricte
+  // 🔧 FONCTION: Génération de slug sécurisée (sans logs debug)
+  const generateSecureSlug = useCallback((product: any): string => {
+    // 1. Vérifier slug existant
     if (product.slug && 
         typeof product.slug === 'string' && 
         product.slug.trim() !== '' && 
         product.slug !== 'undefined' && 
-        product.slug !== 'null' && 
-        product.slug.toLowerCase() !== 'undefined' &&
-        product.slug.toLowerCase() !== 'null') {
-      
-      const cleanSlug = product.slug.trim();
-      console.log('✅ HomePage - Slug existant validé:', cleanSlug);
-      return cleanSlug;
+        product.slug !== 'null') {
+      return product.slug.trim();
     }
     
-    // 2. Générer depuis le titre avec validation
+    // 2. Générer depuis le titre
     const title = product.nameKey || product.title || '';
     if (title && typeof title === 'string' && title.trim() !== '') {
       const generatedSlug = title
@@ -101,31 +88,19 @@ const HomePage: React.FC = () => {
         .replace(/-+/g, '-')            // Tirets multiples → simple
         .replace(/^-|-$/g, '');         // Supprimer tirets début/fin
       
-      if (generatedSlug && 
-          generatedSlug !== 'undefined' && 
-          generatedSlug !== '' && 
-          generatedSlug.length > 0) {
-        console.log('✅ HomePage - Slug généré depuis titre:', generatedSlug);
+      if (generatedSlug && generatedSlug !== 'undefined' && generatedSlug.length > 0) {
         return generatedSlug;
       }
     }
     
     // 3. Utiliser l'ID comme fallback
     const id = product.id || product.objectID || '';
-    if (id && 
-        typeof id === 'string' && 
-        id !== 'undefined' && 
-        id !== 'null' && 
-        id.trim() !== '') {
-      const idSlug = `product-${id}`;
-      console.log('⚠️ HomePage - Slug généré depuis ID:', idSlug);
-      return idSlug;
+    if (id && typeof id === 'string' && id !== 'undefined' && id.trim() !== '') {
+      return `product-${id}`;
     }
     
     // 4. Fallback ultime d'urgence
-    const emergencySlug = `emergency-product-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    console.error('🚨 HomePage - Slug d\'urgence généré:', emergencySlug);
-    return emergencySlug;
+    return `product-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }, []);
 
   // SEO dynamique
@@ -177,8 +152,6 @@ const HomePage: React.FC = () => {
       const results = await fetchRealProducts('');
       const processingTime = Date.now() - startTime;
       
-      console.log('📦 HomePage - Produits initiaux chargés:', results.length);
-      
       setAllResults(results);
       setSearchResults(paginateResults(results, 0));
       setOriginalResults(results);
@@ -189,7 +162,6 @@ const HomePage: React.FC = () => {
         processingTimeMS: processingTime 
       });
 
-      // Enregistrer les métriques de performance
       recordSearch('', results.length, processingTime);
     } catch (error) {
       console.error('Erreur chargement initial:', error);
@@ -216,8 +188,6 @@ const HomePage: React.FC = () => {
       const results = await fetchRealProducts(searchQuery);
       const processingTime = Date.now() - startTime;
       
-      console.log('🔍 HomePage - Résultats recherche:', results.length);
-      
       setAllResults(results);
       setSearchResults(paginateResults(results, page));
       setOriginalResults(results);
@@ -228,7 +198,6 @@ const HomePage: React.FC = () => {
         processingTimeMS: processingTime 
       });
 
-      // Enregistrer les métriques de performance
       recordSearch(searchQuery, results.length, processingTime);
       
     } catch (error) {
@@ -273,18 +242,12 @@ const HomePage: React.FC = () => {
     }
   };
 
-  // Pagination corrigée pour API backend
+  // Pagination
   const handlePageChange = (newPage: number) => {
-    console.log('Changement page:', newPage);
-    
-    // Reset des filtres pour la pagination
     setFilters({ ecoScore: '', zone: '', confidence: '' });
-    
-    // Utiliser allResults pour la pagination
     const paginatedResults = paginateResults(allResults, newPage);
     setSearchResults(paginatedResults);
     setCurrentPage(newPage);
-    
     setTimeout(scrollToResults, 100);
   };
 
@@ -605,126 +568,72 @@ const HomePage: React.FC = () => {
                   : "space-y-4"
               }>
                 {searchResults.map((product, index) => {
-                  // 🔧 FIX CRITIQUE: Validation stricte des données produit avec logs ultra-détaillés
+                  // Validation stricte des données produit
                   if (!product || !product.id) {
-                    console.warn('⚠️ HomePage - Produit invalide ignoré:', product);
+                    if (import.meta.env.DEV) {
+                      console.warn('Produit invalide ignoré:', product);
+                    }
                     return null;
                   }
 
-                  // 🚨 GÉNÉRATION DE SLUG ULTRA-SÉCURISÉE
-                  const secureSlug = generateUltraSecureSlug(product);
-
-                  // Adapter Product vers le format attendu par ProductHit avec validation ultra-stricte
-                  const adaptedHit = {
-                    objectID: product.id,
-                    title: product.nameKey || product.title || 'Produit éco-responsable',
-                    description: product.descriptionKey || product.description || '',
-                    
-                    // 🚨 SLUG ULTRA-SÉCURISÉ AVEC VALIDATION FINALE
-                    slug: secureSlug,
-                    
-                    images: Array.isArray(product.images) ? product.images : 
-                             (product.image ? [product.image] : []),
-                    eco_score: typeof product.ethicalScore === 'number' ? 
-                              Math.min(Math.max(product.ethicalScore / 5, 0), 1) : 0, // Normaliser 0-1
-                    ai_confidence: typeof product.aiConfidence === 'number' ? 
-                                  Math.min(Math.max(product.aiConfidence, 0), 1) : 0,
-                    confidence_pct: typeof product.confidencePct === 'number' ? 
-                                   Math.min(Math.max(product.confidencePct, 0), 100) : 0,
-                    confidence_color: product.confidenceColor || 'gray',
-                    tags: Array.isArray(product.tagsKeys) ? product.tagsKeys : 
-                          Array.isArray(product.tags) ? product.tags : [],
-                    zones_dispo: Array.isArray(product.zonesDisponibles) ? product.zonesDisponibles : [],
-                    verified_status: product.verifiedStatus || 'unknown',
-                    brand: product.brandKey || product.brand || '',
-                    price: typeof product.price === 'number' ? product.price : 15.99
-                  };
-
-                  // 🔧 LOGS DE DEBUG COMPLETS AVEC TOUTES LES DONNÉES
-                  console.log('🔧 HomePage - Produit adapté avec debug complet:', {
-                    index,
-                    productId: product.id,
-                    originalSlug: product.slug,
-                    generatedSlug: secureSlug,
-                    finalSlug: adaptedHit.slug,
-                    productTitle: adaptedHit.title,
-                    timestamp: new Date().toISOString(),
-                    originalProduct: product,
-                    adaptedHit: adaptedHit
-                  });
-
-                  // 🚨 VALIDATION FINALE AVANT AFFICHAGE
-                  if (!adaptedHit.title || 
-                      !adaptedHit.slug || 
-                      adaptedHit.slug === 'undefined' || 
-                      adaptedHit.slug === 'null' ||
-                      adaptedHit.slug.includes('undefined')) {
-                    
-                    console.error('🚨 HomePage - ALERTE CRITIQUE: Produit avec slug invalide bloqué!', {
-                      title: adaptedHit.title,
-                      slug: adaptedHit.slug,
-                      originalProduct: product,
-                      adaptedHit: adaptedHit
-                    });
-                    
-                    // Forcer un slug de secours d'urgence
-                    adaptedHit.slug = `emergency-product-${product.id}-${Date.now()}`;
-                    console.warn('🔧 HomePage - Slug de secours d\'urgence appliqué:', adaptedHit.slug);
-                  }
-
-                  // Validation finale de sécurité
-                  if (adaptedHit.slug.includes('undefined')) {
-                    console.error('🚨 ERREUR CRITIQUE: Slug contient encore undefined après tous les correctifs!', adaptedHit);
-                    return null; // Ne pas afficher ce produit
-                  }
-
-                  console.log('✅ HomePage - Produit validé pour affichage:', {
-                    id: adaptedHit.objectID,
-                    title: adaptedHit.title,
-                    finalSlug: adaptedHit.slug
-                  });
-
+                  // Générer slug sécurisé
+                  const secureSlug = generateSecureSlug(product);
+                  
                   return (
-                    <div 
-                      key={`product-${product.id}-${index}`}
-                      className="animate-fade-in-up"
-                      style={{ 
-                        animationDelay: `${index * 50}ms`,
-                        animationFillMode: 'both'
+                    <ProductHit
+                      key={`${product.id}-${index}`}
+                      hit={{
+                        objectID: product.id,
+                        title: product.title || 'Produit sans titre',
+                        description: product.description || '',
+                        brand: product.brand || '',
+                        category: product.category || '',
+                        image_url: product.image_url || '',
+                        eco_score: product.eco_score || 0,
+                        slug: secureSlug,
+                        tags: product.tags || [],
+                        zones_dispo: product.zones_dispo || [],
+                        verified_status: product.verified_status || 'manual_review'
                       }}
-                    >
-                      <ProductHit hit={adaptedHit} />
-                    </div>
+                      viewMode={viewMode}
+                      onProductClick={(slug: string) => {
+                        // Validation finale avant navigation
+                        if (slug && slug !== 'undefined' && slug.trim() !== '') {
+                          if (import.meta.env.DEV) {
+                            console.log('Navigation vers:', `/product/${slug}`);
+                          }
+                          navigate(`/product/${slug}`);
+                        } else {
+                          console.error('Navigation bloquée - slug invalide:', slug);
+                        }
+                      }}
+                    />
                   );
-                }).filter(Boolean)}
+                })}
               </div>
 
-              {/* Pagination simplifiée et corrigée */}
-              {totalPages > 1 && !hasActiveFilters && (
-                <div className="flex justify-center items-center mt-12 gap-3">
-                  {/* Bouton Précédent */}
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex justify-center items-center mt-16 space-x-2">
                   <button
                     onClick={() => handlePageChange(Math.max(0, currentPage - 1))}
                     disabled={currentPage === 0}
                     className="px-4 py-2 border border-eco-leaf/20 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-eco-leaf/10 transition-colors"
                   >
-                    {t('common.previous') || 'Précédent'}
+                    Précédent
                   </button>
                   
-                  {/* Numéros de page */}
-                  <div className="flex gap-2">
-                    {[...Array(Math.min(totalPages, 5))].map((_, i) => {
-                      const pageNum = currentPage <= 2 ? i : currentPage - 2 + i;
-                      if (pageNum >= totalPages || pageNum < 0) return null;
-                      
+                  <div className="flex space-x-1">
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      const pageNum = Math.max(0, Math.min(totalPages - 5, currentPage - 2)) + i;
                       return (
                         <button
                           key={pageNum}
                           onClick={() => handlePageChange(pageNum)}
-                          className={`px-4 py-2 rounded-lg transition-colors font-medium ${
-                            currentPage === pageNum
-                              ? 'bg-eco-leaf text-white shadow-lg'
-                              : 'border border-eco-leaf/20 hover:bg-eco-leaf/10 text-gray-700'
+                          className={`px-3 py-2 rounded-lg transition-colors ${
+                            pageNum === currentPage
+                              ? 'bg-eco-leaf text-white'
+                              : 'border border-eco-leaf/20 hover:bg-eco-leaf/10'
                           }`}
                         >
                           {pageNum + 1}
@@ -733,23 +642,29 @@ const HomePage: React.FC = () => {
                     })}
                   </div>
                   
-                  {/* Bouton Suivant */}
                   <button
                     onClick={() => handlePageChange(Math.min(totalPages - 1, currentPage + 1))}
                     disabled={currentPage >= totalPages - 1}
                     className="px-4 py-2 border border-eco-leaf/20 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-eco-leaf/10 transition-colors"
                   >
-                    {t('common.next') || 'Suivant'}
+                    Suivant
                   </button>
                 </div>
               )}
             </>
           ) : hasSearched ? (
-            <NoResultsFound 
-              query={currentQuery} 
-              onEnrichRequest={handleEnrichRequest}
-            />
-          ) : null}
+            <NoResultsFound query={currentQuery} onEnrichRequest={handleEnrichRequest} />
+          ) : (
+            <div className="text-center py-12">
+              <Leaf className="h-16 w-16 text-eco-leaf/30 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-eco-text mb-2">
+                Aucun produit disponible
+              </h3>
+              <p className="text-eco-text/70">
+                Revenez plus tard pour découvrir nos produits éco-responsables
+              </p>
+            </div>
+          )}
         </div>
       </section>
     </div>

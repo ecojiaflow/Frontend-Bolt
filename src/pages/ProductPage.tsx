@@ -72,14 +72,16 @@ const ProductPage: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   
-  // ✅ NOUVEAUX ÉTATS
+  // États pour l'interface
   const [activeTab, setActiveTab] = useState<'overview' | 'score' | 'analysis'>('overview');
   const [isFavorite, setIsFavorite] = useState(false);
   const [shareMessage, setShareMessage] = useState('');
 
   useEffect(() => {
-    // 🚨 VALIDATION ULTRA-STRICTE DU SLUG EN PREMIER
-    console.log('🔍 ProductPage - Raw params:', { slug });
+    // 🚨 Validation stricte du slug
+    if (import.meta.env.DEV) {
+      console.log('🔍 ProductPage - Raw params:', { slug });
+    }
     
     if (!slug) {
       console.error('🚨 ERREUR: Aucun slug fourni');
@@ -88,7 +90,7 @@ const ProductPage: React.FC = () => {
       return;
     }
 
-    // 🚨 VALIDATION CRITIQUE: Vérifier les valeurs invalides
+    // Validation des valeurs invalides
     if (slug === 'undefined' || slug === 'null' || slug.trim() === '') {
       console.error('🚨 ERREUR: Slug invalide détecté:', slug);
       setError('Produit introuvable - identifiant invalide');
@@ -96,22 +98,26 @@ const ProductPage: React.FC = () => {
       return;
     }
 
-    // 🚨 REDIRECTION IMMÉDIATE SI SLUG CONTIENT 'undefined'
+    // Redirection si slug contient 'undefined'
     if (slug.includes('undefined') || slug === 'not-found') {
       console.error('🚨 Redirection: Slug contient undefined, retour accueil');
       navigate('/', { replace: true });
       return;
     }
 
-    console.log('✅ ProductPage - Slug valide, chargement:', slug);
+    if (import.meta.env.DEV) {
+      console.log('✅ ProductPage - Slug valide, chargement:', slug);
+    }
 
     const controller = new AbortController();
 
     const fetchProduct = async () => {
       try {
-        // 🔧 CONSTRUCTION SÉCURISÉE DE L'URL
+        // Construction sécurisée de l'URL
         const finalUrl = `${API_BASE_URL}/api/products/${encodeURIComponent(slug)}`;
-        console.log('🔍 URL finale construite:', finalUrl);
+        if (import.meta.env.DEV) {
+          console.log('🔍 URL finale construite:', finalUrl);
+        }
         
         const response = await fetch(finalUrl, { signal: controller.signal });
 
@@ -128,10 +134,12 @@ const ProductPage: React.FC = () => {
           ai_confidence: typeof rawProduct.ai_confidence === "string" ? parseFloat(rawProduct.ai_confidence) : rawProduct.ai_confidence
         };
 
-        console.log('✅ Produit chargé avec succès:', normalized.title);
+        if (import.meta.env.DEV) {
+          console.log('✅ Produit chargé avec succès:', normalized.title);
+        }
         setProduct(normalized);
         
-        // ✅ Vérifier favoris
+        // Vérifier favoris
         const favorites = JSON.parse(localStorage.getItem('ecolojia_favorites') || '[]');
         setIsFavorite(favorites.includes(normalized.id));
         
@@ -148,7 +156,7 @@ const ProductPage: React.FC = () => {
     return () => controller.abort();
   }, [slug, navigate]);
 
-  // ✅ NOUVELLES FONCTIONS
+  // Fonctions utilitaires
   const toggleFavorite = () => {
     if (!product) return;
     
@@ -229,7 +237,7 @@ const ProductPage: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      {/* ✅ HEADER AMÉLIORÉ */}
+      {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <button
           onClick={() => navigate("/")}
@@ -262,7 +270,7 @@ const ProductPage: React.FC = () => {
         </div>
       </div>
 
-      {/* ✅ BREADCRUMB */}
+      {/* Breadcrumb */}
       <nav className="mb-8">
         <div className="flex items-center space-x-2 text-sm text-gray-600">
           <button onClick={() => navigate('/')} className="hover:text-eco-leaf">Accueil</button>
@@ -283,7 +291,7 @@ const ProductPage: React.FC = () => {
       </nav>
 
       <div className="grid lg:grid-cols-2 gap-12 mb-12">
-        {/* ✅ IMAGE AMÉLIORÉE */}
+        {/* Image */}
         <div className="space-y-4">
           <div className="aspect-square bg-gray-100 rounded-xl overflow-hidden border border-eco-leaf/20 relative">
             <img
@@ -303,7 +311,7 @@ const ProductPage: React.FC = () => {
           </div>
         </div>
 
-        {/* ✅ INFORMATIONS ENRICHIES */}
+        {/* Informations produit */}
         <div className="space-y-6">
           <div>
             {/* Catégorie */}
@@ -324,7 +332,7 @@ const ProductPage: React.FC = () => {
             {/* Titre */}
             <h1 className="text-3xl font-bold text-eco-text mb-4">{product.title}</h1>
 
-            {/* Score principal amélioré */}
+            {/* Score principal */}
             {typeof product.eco_score === "number" && (
               <div className="bg-gradient-to-r from-eco-leaf/10 to-green-100 p-6 rounded-xl border border-eco-leaf/20 mb-6">
                 <div className="flex items-center justify-between mb-3">
@@ -365,7 +373,7 @@ const ProductPage: React.FC = () => {
               )}
             </div>
 
-            {/* Tags améliorés */}
+            {/* Tags */}
             {product.tags?.length > 0 && (
               <div className="mb-6">
                 <h3 className="text-sm font-semibold text-gray-800 mb-3">Caractéristiques</h3>
@@ -405,7 +413,7 @@ const ProductPage: React.FC = () => {
         </div>
       </div>
 
-      {/* ✅ ONGLETS DÉTAILS */}
+      {/* Onglets détails */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-12">
         {/* Navigation onglets */}
         <div className="border-b border-gray-200">
@@ -565,12 +573,12 @@ const ProductPage: React.FC = () => {
         </div>
       </div>
 
-      {/* ✅ LIENS PARTENAIRES (inchangé) */}
+      {/* Liens partenaires */}
       <div className="border-t pt-6 mb-12">
         <PartnerLinks partnerLinks={product.partnerLinks} productTitle={product.title} />
       </div>
 
-      {/* ✅ SUGGESTIONS SIMILAIRES (inchangé) */}
+      {/* Suggestions similaires */}
       <div className="border-t pt-6">
         <SimilarProductsCarousel productId={product.id} />
       </div>

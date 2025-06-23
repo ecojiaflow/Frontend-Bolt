@@ -1,8 +1,13 @@
+<<<<<<< HEAD
+=======
 // /src/api/realApi.ts
+>>>>>>> 3ae457d (🎉 initial: Ecolojia frontend with SEO and bug fixes)
 import { Product } from '../types';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'https://ecolojia-backendv1.onrender.com';
 
+<<<<<<< HEAD
+=======
 // Cache simple et non-intrusif
 const requestCache = new Map<string, { data: any; timestamp: number }>();
 const CACHE_DURATION = 2 * 60 * 1000; // 2 minutes
@@ -19,6 +24,7 @@ const setCachedRequest = (url: string, data: any) => {
   requestCache.set(url, { data, timestamp: Date.now() });
 };
 
+>>>>>>> 3ae457d (🎉 initial: Ecolojia frontend with SEO and bug fixes)
 interface BackendProduct {
   id: string;
   title: string;
@@ -38,49 +44,14 @@ interface BackendProduct {
   resume_fr?: string;
 }
 
-function adaptBackendToFrontend(backendProduct: BackendProduct): Product | null {
-  // 🚨 VALIDATION STRICTE - REJETER SI PAS D'ID VALIDE
-  if (!backendProduct || !backendProduct.id || backendProduct.id === 'undefined') {
-    console.error('❌ Produit sans ID valide:', backendProduct);
+function adaptBackendToFrontend(backendProduct: BackendProduct): Product {
+  if (!backendProduct.id) {
+    console.error('❌ Produit sans ID:', backendProduct);
     return null;
   }
 
   const ecoScore = parseFloat(backendProduct.eco_score) || 0;
   const aiConfidence = parseFloat(backendProduct.ai_confidence) || 0;
-
-  // 🛡️ GÉNÉRATION DE SLUG SÉCURISÉE
-  let safeSlug = backendProduct.slug;
-  
-  if (!safeSlug || 
-      safeSlug === 'undefined' || 
-      safeSlug === 'null' || 
-      safeSlug.includes('undefined') ||
-      safeSlug.trim() === '') {
-    
-    // Générer depuis le titre
-    const title = backendProduct.title || '';
-    if (title && title.trim() !== '' && title !== 'undefined') {
-      safeSlug = title
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .replace(/[^a-z0-9\s-]/g, '')
-        .replace(/\s+/g, '-')
-        .replace(/-+/g, '-')
-        .replace(/^-|-$/g, '');
-    }
-    
-    // Si encore invalide, utiliser l'ID
-    if (!safeSlug || safeSlug === 'undefined' || safeSlug.length < 2) {
-      safeSlug = `product-${backendProduct.id}`;
-    }
-  }
-
-  // 🚨 DERNIÈRE VALIDATION - SI LE SLUG EST ENCORE PROBLÉMATIQUE, REJETER
-  if (!safeSlug || safeSlug === 'undefined' || safeSlug.includes('undefined')) {
-    console.error('❌ Impossible de générer un slug valide pour:', backendProduct);
-    return null;
-  }
 
   return {
     id: backendProduct.id,
@@ -98,7 +69,7 @@ function adaptBackendToFrontend(backendProduct: BackendProduct): Product | null 
     certificationsKeys: [],
     aiConfidence: Math.min(1, Math.max(0, aiConfidence)),
     zonesDisponibles: backendProduct.zones_dispo || ['FR', 'EU'],
-    slug: safeSlug, // SLUG GARANTI VALIDE
+    slug: backendProduct.slug || backendProduct.id,
     resumeFr: backendProduct.resume_fr,
     confidencePct: backendProduct.confidence_pct,
     confidenceColor: backendProduct.confidence_color,
@@ -112,6 +83,8 @@ export async function fetchRealProducts(searchQuery: string = ''): Promise<Produ
       ? `${API_BASE}/api/products/search?q=${encodeURIComponent(searchQuery)}`
       : `${API_BASE}/api/products`;
     
+<<<<<<< HEAD
+=======
     // Cache check - NON BLOQUANT
     const cached = getCachedRequest(url);
     if (cached) {
@@ -119,6 +92,7 @@ export async function fetchRealProducts(searchQuery: string = ''): Promise<Produ
       return cached;
     }
     
+>>>>>>> 3ae457d (🎉 initial: Ecolojia frontend with SEO and bug fixes)
     console.log('🔍 Requête API:', url);
     
     const response = await fetch(url, {
@@ -136,6 +110,9 @@ export async function fetchRealProducts(searchQuery: string = ''): Promise<Produ
     const data = await response.json();
     console.log('📊 Données reçues:', data);
     
+<<<<<<< HEAD
+    const backendProducts: BackendProduct[] = Array.isArray(data) ? data : [];
+=======
     // Gérer les différents formats de réponse API
     let backendProducts: BackendProduct[] = [];
     
@@ -156,18 +133,21 @@ export async function fetchRealProducts(searchQuery: string = ''): Promise<Produ
       backendProducts = [];
     }
     
+>>>>>>> 3ae457d (🎉 initial: Ecolojia frontend with SEO and bug fixes)
     console.log('📦 Produits trouvés:', backendProducts.length);
     
-    // 🚨 ADAPTATION + FILTRAGE DES PRODUITS INVALIDES
     const adaptedProducts = backendProducts
       .map(product => adaptBackendToFrontend(product))
-      .filter(Boolean) as Product[]; // Supprimer les null
+      .filter(Boolean) as Product[];
     
     console.log('✅ Produits adaptés:', adaptedProducts.length);
+<<<<<<< HEAD
+=======
     
     // Cache save - NON BLOQUANT
     setCachedRequest(url, adaptedProducts);
     
+>>>>>>> 3ae457d (🎉 initial: Ecolojia frontend with SEO and bug fixes)
     return adaptedProducts;
     
   } catch (error) {
@@ -184,25 +164,28 @@ export async function fetchRealProducts(searchQuery: string = ''): Promise<Produ
   }
 }
 
+<<<<<<< HEAD
+// NOUVELLE FONCTION pour récupérer un produit par slug
+=======
+>>>>>>> 3ae457d (🎉 initial: Ecolojia frontend with SEO and bug fixes)
 export async function fetchProductBySlug(slug: string): Promise<Product | null> {
-  // 🚨 VALIDATION CRITIQUE DU SLUG
-  if (!slug || 
-      slug === 'undefined' || 
-      slug === 'null' || 
-      slug.includes('undefined') ||
-      slug.trim() === '') {
-    console.error('❌ fetchProductBySlug: Slug invalide:', slug);
+  if (!slug || slug === 'undefined') {
+    console.error('❌ Slug invalide:', slug);
     return null;
   }
 
   try {
-    const url = `${API_BASE}/api/products/${encodeURIComponent(slug)}`;
+<<<<<<< HEAD
+    const response = await fetch(`${API_BASE}/api/products/${slug}`);
+=======
+    const url = `${API_BASE}/api/products/${slug}`;
     
     // Cache check
     const cached = getCachedRequest(url);
     if (cached) return cached;
 
     const response = await fetch(url);
+>>>>>>> 3ae457d (🎉 initial: Ecolojia frontend with SEO and bug fixes)
     
     if (!response.ok) {
       if (response.status === 404) return null;
@@ -210,14 +193,16 @@ export async function fetchProductBySlug(slug: string): Promise<Product | null> 
     }
     
     const data = await response.json();
+<<<<<<< HEAD
+    return adaptBackendToFrontend(data);
+=======
     const adapted = adaptBackendToFrontend(data);
     
-    // Cache save seulement si le produit est valide
-    if (adapted) {
-      setCachedRequest(url, adapted);
-    }
+    // Cache save
+    setCachedRequest(url, adapted);
     
     return adapted;
+>>>>>>> 3ae457d (🎉 initial: Ecolojia frontend with SEO and bug fixes)
     
   } catch (error) {
     console.error('❌ Erreur récupération produit:', error);

@@ -57,8 +57,7 @@ interface Product {
   zones_dispo?: string[];
 }
 
-const fallbackImage =
-  "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600' viewBox='0 0 600 600'%3E%3Crect width='600' height='600' fill='%23f0f0f0'/%3E%3Ctext x='50%25' y='50%25' font-size='24' fill='%23999' text-anchor='middle' dy='0.3em'%3EProduit%3C/text%3E%3C/svg%3E";
+const fallbackImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600' viewBox='0 0 600 600'%3E%3Crect width='600' height='600' fill='%23f0f0f0'/%3E%3Ctext x='50%25' y='50%25' font-size='24' fill='%23999' text-anchor='middle' dy='0.3em'%3EProduit%3C/text%3E%3C/svg%3E";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "https://ecolojia-backendv1.onrender.com";
 
@@ -69,34 +68,16 @@ const ProductPage: React.FC = () => {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
-  
-  // États pour l'interface
   const [activeTab, setActiveTab] = useState<'overview' | 'score' | 'analysis'>('overview');
   const [isFavorite, setIsFavorite] = useState(false);
   const [shareMessage, setShareMessage] = useState('');
 
-  // 🚨 VALIDATION IMMÉDIATE DU SLUG - AVANT TOUT useEffect
   useEffect(() => {
-    console.log('🔍 ProductPage useEffect - slug reçu:', slug);
-    
-    // 🚨 VALIDATION ABSOLUE - REDIRECTION IMMÉDIATE SI UNDEFINED
-    if (!slug) {
-      console.error('🚨 ProductPage: Aucun slug fourni, redirection');
+    if (!slug || slug === 'undefined' || slug === 'null' || slug.trim() === '' || slug.includes('undefined')) {
+      console.error('🚨 Slug invalide :', slug);
       navigate('/', { replace: true });
       return;
     }
-
-    if (slug === 'undefined' || 
-        slug === 'null' || 
-        slug.includes('undefined') ||
-        slug.trim() === '') {
-      console.error('🚨 ProductPage: Slug invalide détecté, redirection:', slug);
-      navigate('/', { replace: true });
-      return;
-    }
-
-    // 🛡️ SI ON ARRIVE ICI, LE SLUG EST VALIDE
-    console.log('✅ ProductPage: Slug valide, chargement du produit:', slug);
 
     const controller = new AbortController();
 
@@ -105,17 +86,7 @@ const ProductPage: React.FC = () => {
         setLoading(true);
         setError(null);
         
-        // 🔒 CONSTRUCTION ULTRA-SÉCURISÉE DE L'URL
-        const safeSlug = encodeURIComponent(slug);
-        const finalUrl = `${API_BASE_URL}/api/products/${safeSlug}`;
-        
-        console.log('📡 Requête vers:', finalUrl);
-        
-        // 🚨 VÉRIFICATION FINALE DE L'URL AVANT REQUÊTE
-        if (finalUrl.includes('/undefined') || finalUrl.includes('undefined')) {
-          throw new Error('URL invalide générée');
-        }
-        
+        const finalUrl = `${API_BASE_URL}/api/products/${encodeURIComponent(slug)}`;
         const response = await fetch(finalUrl, { 
           signal: controller.signal,
           method: 'GET',
@@ -126,19 +97,11 @@ const ProductPage: React.FC = () => {
         });
 
         if (!response.ok) {
-          if (response.status === 404) {
-            throw new Error("Produit non trouvé");
-          }
-          throw new Error(`Erreur serveur: ${response.status}`);
+          throw new Error(response.status === 404 ? "Produit non trouvé" : "Erreur serveur");
         }
 
         const data: Product | { product: Product } = await response.json();
         const rawProduct = (data as any).product ?? data;
-
-        // Validation des données reçues
-        if (!rawProduct || !rawProduct.id) {
-          throw new Error("Données produit invalides");
-        }
 
         const normalized: Product = {
           ...rawProduct,
@@ -152,22 +115,16 @@ const ProductPage: React.FC = () => {
           zones_dispo: rawProduct.zones_dispo || []
         };
 
-        console.log('✅ Produit chargé:', normalized.title);
         setProduct(normalized);
-        
-        // Vérifier favoris
+
         try {
           const favorites = JSON.parse(localStorage.getItem('ecolojia_favorites') || '[]');
           setIsFavorite(favorites.includes(normalized.id));
         } catch (e) {
           console.warn('Erreur lecture favoris:', e);
         }
-        
       } catch (err) {
-        if (err instanceof DOMException && err.name === "AbortError") {
-          return;
-        }
-        
+        if (err instanceof DOMException && err.name === "AbortError") return;
         console.error('❌ Erreur chargement produit:', err);
         setError(err instanceof Error ? err.message : "Erreur lors du chargement");
       } finally {
@@ -176,13 +133,9 @@ const ProductPage: React.FC = () => {
     };
 
     fetchProduct();
-
-    return () => {
-      controller.abort();
-    };
+    return () => controller.abort();
   }, [slug, navigate]);
 
-  // Fonctions utilitaires
   const toggleFavorite = () => {
     if (!product) return;
     
@@ -191,7 +144,6 @@ const ProductPage: React.FC = () => {
       const newFavorites = isFavorite 
         ? favorites.filter((id: string) => id !== product.id)
         : [...favorites, product.id];
-      
       localStorage.setItem('ecolojia_favorites', JSON.stringify(newFavorites));
       setIsFavorite(!isFavorite);
     } catch (e) {
@@ -234,7 +186,6 @@ const ProductPage: React.FC = () => {
     return { label: 'À améliorer', color: 'red' };
   };
 
-  // Affichage du loading
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -246,7 +197,6 @@ const ProductPage: React.FC = () => {
     );
   }
 
-  // Affichage de l'erreur
   if (error || !product) {
     return (
       <div className="text-center py-20">

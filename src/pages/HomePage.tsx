@@ -4,8 +4,11 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Leaf, Search, X, ChevronDown, Filter, Grid, List } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-// Import des composants existants
 import ProductHit from '../components/ProductHit';
+<<<<<<< HEAD
+import NoResultsFound from '../components/NoResultsFound';
+import searchClient, { ALGOLIA_INDEX_NAME } from '../lib/algolia';
+=======
 import { fetchRealProducts } from '../api/realApi';
 import { Product } from '../types';
 import { SEOHead } from '../components/SEOHead';
@@ -32,10 +35,22 @@ const NoResultsFound: React.FC<{ query: string; onEnrichRequest: (query: string)
     </div>
   );
 };
+>>>>>>> bbcae51aff3a32786affc8ec31d4b27d38700afc
 
 const HomePage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+<<<<<<< HEAD
+
+  /* ---------- États ---------- */
+  const [query, setQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [originalResults, setOriginalResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [stats, setStats] = useState({ nbHits: 0, processingTimeMS: 0 });
+
+=======
   const [searchParams, setSearchParams] = useSearchParams();
   const { recordSearch } = usePerformanceMonitoring();
   
@@ -48,21 +63,19 @@ const HomePage: React.FC = () => {
   const [searchStats, setSearchStats] = useState({ nbHits: 0, processingTimeMS: 0 });
   
   // États de pagination
+>>>>>>> bbcae51aff3a32786affc8ec31d4b27d38700afc
   const [currentPage, setCurrentPage] = useState(0);
   const [totalPages, setTotalPages] = useState(0);
   const [hitsPerPage] = useState(12);
-  
-  // États d'affichage
+
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [showFilters, setShowFilters] = useState(false);
-  
-  // États des filtres
-  const [filters, setFilters] = useState({
-    ecoScore: '',
-    zone: '',
-    confidence: ''
-  });
+  const [filters, setFilters] = useState({ ecoScore: '', zone: '', confidence: '' });
 
+<<<<<<< HEAD
+  /* ---------- Chargement initial ---------- */
+  useEffect(() => { loadInitialProducts(); }, []);
+=======
   const currentQuery = searchParams.get('q') || '';
 
 <<<<<<< HEAD
@@ -208,6 +221,7 @@ const HomePage: React.FC = () => {
       loadInitialProducts();
     }
   }, []);
+>>>>>>> bbcae51aff3a32786affc8ec31d4b27d38700afc
 
   // Écouter les changements d'URL pour les recherches
   useEffect(() => {
@@ -224,6 +238,36 @@ const HomePage: React.FC = () => {
   const loadInitialProducts = async () => {
     try {
       setIsSearching(true);
+<<<<<<< HEAD
+      const index = searchClient.initIndex(ALGOLIA_INDEX_NAME);
+      const res = await index.search('', { hitsPerPage, page: 0 });
+      setSearchResults(res.hits);
+      setOriginalResults(res.hits);
+      setTotalPages(res.nbPages);
+      setStats({ nbHits: res.nbHits, processingTimeMS: res.processingTimeMS });
+    } finally { setIsSearching(false); }
+  };
+
+  /* ---------- Recherche ---------- */
+  const performSearch = useCallback(
+    async (q: string, page = 0) => {
+      if (!q) { loadInitialProducts(); setHasSearched(false); setCurrentPage(0); return; }
+      if (q.length < 2) return;
+      try {
+        setIsSearching(true);
+        const index = searchClient.initIndex(ALGOLIA_INDEX_NAME);
+        const res = await index.search(q, { hitsPerPage, page });
+        setSearchResults(res.hits);
+        setOriginalResults(res.hits);
+        setTotalPages(res.nbPages);
+        setCurrentPage(page);
+        setStats({ nbHits: res.nbHits, processingTimeMS: res.processingTimeMS });
+        setHasSearched(true);
+      } finally { setIsSearching(false); }
+    },
+    [hitsPerPage],
+  );
+=======
       const startTime = Date.now();
       const results = await fetchRealProducts('');
       const processingTime = Date.now() - startTime;
@@ -255,9 +299,34 @@ const HomePage: React.FC = () => {
       loadInitialProducts();
       return;
     }
+>>>>>>> bbcae51aff3a32786affc8ec31d4b27d38700afc
 
-    if (searchQuery.length < 2) return;
+  /* debounce */
+  useEffect(() => { const id = setTimeout(() => performSearch(query, 0), 300); return () => clearTimeout(id); },
+    [query, performSearch]);
 
+<<<<<<< HEAD
+  /* ---------- Helpers ---------- */
+  const scrollToResults = () =>
+    document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
+
+  const clearSearch = () => {
+    setQuery(''); setHasSearched(false);
+    setFilters({ ecoScore:'', zone:'', confidence:'' });
+  };
+
+  const handlePageChange = (p:number) => { performSearch(query, p); scrollToResults(); };
+
+  const handleProductClick = (hit:any) => navigate(`/product/${hit.slug || hit.objectID}`);
+
+  /* ---------- Filtres locaux ---------- */
+  const applyFilters = () => {
+    let res = [...originalResults];
+    if (filters.ecoScore)   res = res.filter(h => h.eco_score   >= +filters.ecoScore);
+    if (filters.zone)       res = res.filter(h => h.zones_dispo?.includes(filters.zone));
+    if (filters.confidence) res = res.filter(h => h.ai_confidence >= +filters.confidence);
+    setSearchResults(res); setStats({ ...stats, nbHits: res.length }); setShowFilters(false);
+=======
     try {
       setIsSearching(true);
       const startTime = Date.now();
@@ -373,10 +442,31 @@ const HomePage: React.FC = () => {
     setSearchResults(filteredResults);
     setSearchStats({ ...searchStats, nbHits: filteredResults.length });
     setShowFilters(false);
+>>>>>>> bbcae51aff3a32786affc8ec31d4b27d38700afc
+  };
+  const resetFilters = () => {
+<<<<<<< HEAD
+    setFilters({ ecoScore:'', zone:'', confidence:'' });
+    setSearchResults(originalResults);
+    setStats({ ...stats, nbHits: originalResults.length });
   };
 
-  // Fonction pour réinitialiser les filtres
-  const resetFilters = () => {
+  /* ---------- Render ---------- */
+  return (
+    <div className="min-h-screen flex flex-col">
+      {/* HERO ------------------------------------------------ */}
+      <section className="bg-eco-gradient py-16 md:py-24">
+        <div className="max-w-7xl mx-auto px-4 text-center">
+          <div className="flex justify-center mb-8"><Leaf className="h-16 w-16 text-eco-leaf animate-pulse" /></div>
+
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-eco-text mb-6"
+            dangerouslySetInnerHTML={{
+              __html: t('homepage.hero.title',{interpolation:{escapeValue:false}})
+                .replace('<highlight>','<span class="text-eco-leaf">')
+                .replace('</highlight>','</span>')
+            }} />
+
+=======
     setFilters({ ecoScore: '', zone: '', confidence: '' });
     setSearchResults(paginateResults(originalResults, currentPage));
     setSearchStats({ ...searchStats, nbHits: originalResults.length });
@@ -413,10 +503,26 @@ const HomePage: React.FC = () => {
             )}
           </h1>
           
+>>>>>>> bbcae51aff3a32786affc8ec31d4b27d38700afc
           <p className="text-lg md:text-xl text-eco-text/80 max-w-3xl mx-auto mb-12">
             {t('homepage.hero.subtitle')}
           </p>
 
+<<<<<<< HEAD
+          {/* Champ de recherche (unique) */}
+          <form onSubmit={e=>{e.preventDefault(); scrollToResults();}}
+                className="w-full max-w-3xl mx-auto mb-8">
+            <div className="relative">
+              <input value={query} onChange={e=>setQuery(e.target.value)}
+                placeholder={t('common.searchPlaceholder')}
+                autoComplete="off"
+                className="w-full py-4 px-12 pr-16 border-2 border-eco-text/10 rounded-full shadow-lg
+                           focus:ring-2 focus:ring-eco-leaf/30 text-eco-text placeholder-eco-text/50 bg-white/95" />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-eco-text/50" />
+              {query && (
+                <button type="button" onClick={clearSearch}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 p-2 hover:bg-eco-text/10 rounded-full">
+=======
           {/* Barre de recherche */}
           <form onSubmit={handleSubmit} className="w-full max-w-3xl mx-auto mb-8">
             <div className="relative">
@@ -443,10 +549,18 @@ const HomePage: React.FC = () => {
                   onClick={handleClear}
                   className="absolute right-4 top-1/2 transform -translate-y-1/2 p-2 hover:bg-eco-text/10 rounded-full transition-colors"
                 >
+>>>>>>> bbcae51aff3a32786affc8ec31d4b27d38700afc
                   <X className="h-4 w-4 text-eco-text/50 hover:text-eco-text" />
                 </button>
               )}
             </div>
+<<<<<<< HEAD
+            {!hasSearched && !query && (
+              <div className="mt-6">
+                <button type="button" onClick={scrollToResults}
+                  className="inline-flex items-center gap-2 text-eco-text/70 hover:text-eco-text group">
+                  {t('common.discoverProducts')}
+=======
 
             {/* Indicateurs de recherche */}
             {currentQuery && currentQuery.length >= 2 && (
@@ -466,32 +580,42 @@ const HomePage: React.FC = () => {
                   className="inline-flex items-center gap-2 text-eco-text/70 hover:text-eco-text transition-all group hover:scale-105"
                 >
                   <span>{t('common.discoverProducts') || 'Découvrir nos produits'}</span>
+>>>>>>> bbcae51aff3a32786affc8ec31d4b27d38700afc
                   <ChevronDown className="h-4 w-4 group-hover:translate-y-1 transition-transform" />
                 </button>
               </div>
             )}
           </form>
 
-          {/* Stats de recherche */}
-          {hasSearched && searchStats.nbHits > 0 && (
+          {hasSearched && !isSearching && stats.nbHits > 0 && (
             <div className="text-eco-text/60 text-sm">
+<<<<<<< HEAD
+              {`${stats.nbHits} résultat${stats.nbHits>1?'s':''} trouvé${stats.nbHits>1?'s':''} en ${stats.processingTimeMS} ms`}
+=======
               {searchStats.nbHits === 1 
                 ? `1 résultat trouvé en ${searchStats.processingTimeMS}ms`
                 : `${searchStats.nbHits} résultats trouvés en ${searchStats.processingTimeMS}ms`
               }
+>>>>>>> bbcae51aff3a32786affc8ec31d4b27d38700afc
             </div>
           )}
         </div>
       </section>
 
-      {/* Section Résultats */}
+      {/* RÉSULTATS ------------------------------------------ */}
       <section id="results-section" className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
-          {/* Header des résultats */}
+        <div className="max-w-7xl mx-auto px-4">
+          {/* Header résultats */}
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
             <div>
               <h2 className="text-3xl font-bold text-eco-text mb-2">
+<<<<<<< HEAD
+                {query ? t('common.searchResults',{query}) : t('common.ecoProducts')}
+              </h2>
+              <p className="text-eco-text/70">
+                {stats.nbHits} {t('common.product', {count: stats.nbHits})}
+                {hasSearched ? ` ${t('common.correspondingSearch')}` : ` ${t('common.available')}`}
+=======
                 {currentQuery ? `Résultats pour "${currentQuery}"` : 'Produits éco-responsables'}
               </h2>
               <p className="text-eco-text/70">
@@ -506,11 +630,17 @@ const HomePage: React.FC = () => {
                 {totalPages > 1 && (
                   <span className="text-eco-text/50"> • Page {currentPage + 1} sur {totalPages}</span>
                 )}
+>>>>>>> bbcae51aff3a32786affc8ec31d4b27d38700afc
               </p>
             </div>
 
-            {/* Contrôles d'affichage */}
+            {/* Boutons vue + filtre */}
             <div className="flex items-center gap-4">
+<<<<<<< HEAD
+              <button onClick={()=>setShowFilters(!showFilters)}
+                className="flex items-center gap-2 px-4 py-2 border border-eco-leaf/20 rounded-lg hover:bg-eco-leaf/10">
+                <Filter className="h-4 w-4"/>{t('common.filters')}
+=======
               <button
                 onClick={() => setShowFilters(!showFilters)}
                 className={`flex items-center gap-2 px-4 py-2 border rounded-lg transition-colors ${
@@ -526,25 +656,44 @@ const HomePage: React.FC = () => {
                     {[filters.ecoScore, filters.zone, filters.confidence].filter(Boolean).length}
                   </span>
                 )}
+>>>>>>> bbcae51aff3a32786affc8ec31d4b27d38700afc
               </button>
-              
-              <div className="flex items-center border border-eco-leaf/20 rounded-lg overflow-hidden">
-                <button
-                  onClick={() => setViewMode('grid')}
-                  className={`p-2 ${viewMode === 'grid' ? 'bg-eco-leaf text-white' : 'hover:bg-eco-leaf/10'} transition-colors`}
-                >
-                  <Grid className="h-4 w-4" />
+              <div className="flex border border-eco-leaf/20 rounded-lg overflow-hidden">
+                <button onClick={()=>setViewMode('grid')}
+                  className={`p-2 ${viewMode==='grid'?'bg-eco-leaf text-white':'hover:bg-eco-leaf/10'}`}>
+                  <Grid className="h-4 w-4"/>
                 </button>
-                <button
-                  onClick={() => setViewMode('list')}
-                  className={`p-2 ${viewMode === 'list' ? 'bg-eco-leaf text-white' : 'hover:bg-eco-leaf/10'} transition-colors`}
-                >
-                  <List className="h-4 w-4" />
+                <button onClick={()=>setViewMode('list')}
+                  className={`p-2 ${viewMode==='list'?'bg-eco-leaf text-white':'hover:bg-eco-leaf/10'}`}>
+                  <List className="h-4 w-4"/>
                 </button>
               </div>
             </div>
           </div>
 
+<<<<<<< HEAD
+          {/* (Optionnel) panneau de filtres -> conserve ton code précédent ici */}
+
+          {/* Affichage des produits */}
+          {isSearching && searchResults.length===0 ? (
+            <p className="text-center text-eco-text/60">{t('common.searchInProgress')}</p>
+          ) : searchResults.length>0 ? (
+            <div className={viewMode==='grid'
+                ?'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6'
+                :'space-y-4'}>
+              {searchResults.map((hit) => (
+                <div key={hit.objectID||hit.id} onClick={()=>handleProductClick(hit)}
+                     className="cursor-pointer animate-fade-in-up">
+                  <ProductHit hit={hit}/>
+                </div>
+              ))}
+            </div>
+          ) : hasSearched ? (
+            <NoResultsFound query={query}/>
+          ) : null}
+
+          {/* Pagination -> remets ton composant si besoin */}
+=======
           {/* Panneau de filtres */}
           {showFilters && (
             <div className="mb-8 p-6 bg-white rounded-xl shadow-sm border border-eco-leaf/10 animate-fade-in">
@@ -901,6 +1050,7 @@ const HomePage: React.FC = () => {
               </p>
             </div>
           )}
+>>>>>>> bbcae51aff3a32786affc8ec31d4b27d38700afc
         </div>
       </section>
     </div>

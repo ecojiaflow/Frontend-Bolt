@@ -1,4 +1,8 @@
 import React, { useState, useEffect } from "react";
+<<<<<<< HEAD
+import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { ArrowLeft, Users, Shield } from "lucide-react";
+=======
 import { useParams, useNavigate } from "react-router-dom";
 import { 
   ArrowLeft, 
@@ -14,11 +18,16 @@ import {
   CheckCircle,
   AlertCircle
 } from "lucide-react";
+>>>>>>> bbcae51aff3a32786affc8ec31d4b27d38700afc
 
 import ConfidenceBadge from "../components/ConfidenceBadge";
 import PartnerLinks from "../components/PartnerLinks";
 import SimilarProductsCarousel from "../components/SimilarProductsCarousel";
+<<<<<<< HEAD
+import EcoScoreBadge from "../components/EcoScoreBadge";
+=======
 import { CATEGORIES, CategoryType } from '../types/categories';
+>>>>>>> bbcae51aff3a32786affc8ec31d4b27d38700afc
 
 interface Partner {
   id: string;
@@ -57,7 +66,12 @@ interface Product {
   zones_dispo?: string[];
 }
 
+<<<<<<< HEAD
+// ❌ SUPPRIMÉ: const fallbackImage = "/fallback.png";
+const fallbackImage = "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=400&fit=crop&q=80";
+=======
 const fallbackImage = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='600' viewBox='0 0 600 600'%3E%3Crect width='600' height='600' fill='%23f0f0f0'/%3E%3Ctext x='50%25' y='50%25' font-size='24' fill='%23999' text-anchor='middle' dy='0.3em'%3EProduit%3C/text%3E%3C/svg%3E";
+>>>>>>> bbcae51aff3a32786affc8ec31d4b27d38700afc
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "https://ecolojia-backendv1.onrender.com";
 
@@ -71,6 +85,22 @@ const ProductPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'overview' | 'score' | 'analysis'>('overview');
   const [isFavorite, setIsFavorite] = useState(false);
   const [shareMessage, setShareMessage] = useState('');
+
+  // Gestion intelligente des images
+  const getProductImage = (product: Product) => {
+    if (product.image_url?.trim() && !product.image_url.includes('fallback')) {
+      return product.image_url.trim();
+    }
+    
+    // Fallback par catégorie
+    const categoryFallbacks: Record<string, string> = {
+      'Alimentation': 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=400&h=400&fit=crop&q=80',
+      'Cosmétiques': 'https://images.unsplash.com/photo-1596462502278-27bfdc403348?w=400&h=400&fit=crop&q=80',
+      'Maison': 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=400&h=400&fit=crop&q=80'
+    };
+    
+    return categoryFallbacks[product.category || ''] || fallbackImage;
+  };
 
   useEffect(() => {
     if (!slug || slug === 'undefined' || slug === 'null' || slug.trim() === '' || slug.includes('undefined')) {
@@ -277,11 +307,14 @@ const ProductPage: React.FC = () => {
         <div className="space-y-4">
           <div className="aspect-square bg-gray-100 rounded-xl overflow-hidden border border-eco-leaf/20 relative">
             <img
-              src={product.image_url || fallbackImage}
+              src={getProductImage(product)}
               alt={product.title}
               className="w-full h-full object-cover"
               onError={(e) => {
-                (e.currentTarget as HTMLImageElement).src = fallbackImage;
+                const target = e.currentTarget as HTMLImageElement;
+                if (!target.src.includes('unsplash.com')) {
+                  target.src = fallbackImage;
+                }
               }}
             />
             {product.verified_status === "verified" && (
@@ -355,6 +388,24 @@ const ProductPage: React.FC = () => {
               )}
             </div>
 
+<<<<<<< HEAD
+          {typeof product.eco_score === "number" && (
+            <>
+              <EcoScoreBadge
+                score={product.eco_score}
+                confidenceColor={product.confidence_color}
+              />
+              <div className="text-xs text-gray-500 mt-2">
+                <p className="mb-1 font-medium">🔍 Légende du score écologique :</p>
+                <ul className="list-disc ml-5 space-y-1">
+                  <li><span className="text-green-600 font-medium">Vert</span> : produit très écoresponsable</li>
+                  <li><span className="text-yellow-500 font-medium">Jaune</span> : score modéré</li>
+                  <li><span className="text-red-500 font-medium">Rouge</span> : score faible ou à vérifier</li>
+                </ul>
+              </div>
+            </>
+          )}
+=======
             {/* Tags */}
             {product.tags?.length > 0 && (
               <div className="mb-6">
@@ -394,6 +445,7 @@ const ProductPage: React.FC = () => {
           </div>
         </div>
       </div>
+>>>>>>> bbcae51aff3a32786affc8ec31d4b27d38700afc
 
       {/* Onglets détails */}
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 mb-12">
@@ -532,12 +584,18 @@ const ProductPage: React.FC = () => {
         </div>
       )}
 
+<<<<<<< HEAD
+      <div className="mt-12 border-t pt-6">
+        <SimilarProductsCarousel productId={product.id} />
+      </div>
+=======
       {/* Suggestions similaires - SEULEMENT SI PRODUCT.ID VALIDE */}
       {product.id && product.id !== 'undefined' && product.id.trim() !== '' && (
         <div className="border-t pt-6">
           <SimilarProductsCarousel productId={product.id} />
         </div>
       )}
+>>>>>>> bbcae51aff3a32786affc8ec31d4b27d38700afc
     </div>
   );
 };

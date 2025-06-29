@@ -4,13 +4,34 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Ecolojia - Moteur de recherche écoresponsable</title>
+    <title>Ecolojia V3 - Moteur de recherche écoresponsable</title>
+    
+    <!-- 🛡️ PROTECTION ANTI-UNDEFINED - REDIRECTION IMMÉDIATE -->
+    <script>
+    if(location.pathname.includes('undefined') || location.pathname.includes('/undefined') || location.pathname === '/product/undefined') {
+      console.log('🚨 Redirection undefined détectée');
+      location.href='/';
+    }
+    </script>
+    
+    <!-- 🚨 FORCE CACHE BUST COMPLET - NO FALLBACK.PNG -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <meta name="cache-bust" content="20250626-fallback-elimination-v3">
+    
+    <!-- Force reload assets -->
+    <script>
+    // Force cache bust pour éliminer définitivement fallback.png
+    window.CACHE_BUST_FALLBACK = '20250626-v3';
+    console.log('🔄 Cache bust actif - Élimination fallback.png');
+    </script>
     
     <!-- Plausible Analytics - Respectueux de la vie privée, sans cookies -->
     <script defer data-domain="ecolojia.com" src="https://plausible.io/js/script.js"></script>
   </head>
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <script type="module" src="/src/main.tsx?v=20250626"></script>
   </body>
 </html>

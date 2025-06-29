@@ -14,26 +14,36 @@ import ProductHit from '../ProductHit';
 import NoResultsFound from '../NoResultsFound';
 import searchClient, { ALGOLIA_INDEX_NAME } from '../../lib/algolia';
 
-const ResultsWrapper = connectStateResults(({ searchResults, searchState, children }: any) => {
+/**
+ * Permet de masquer le SearchBox quand le composant est embarqué
+ * sous un autre champ de recherche (ex. : Hero de la HomePage).
+ */
+interface SearchExperienceProps {
+  /** Masquer le champ de recherche ? (défaut : false) */
+  hideSearchBox?: boolean;
+}
+
+const ResultsWrapper = connectStateResults(({ searchResults, children }) => {
   if (searchResults && searchResults.nbHits === 0) {
-    return <NoResultsFound query={searchState?.query ?? ''} />;
+    return <NoResultsFound query={searchResults?.query ?? ''} />;
   }
   return children;
 });
 
-const SearchExperience: React.FC = () => {
+const SearchExperience: React.FC<SearchExperienceProps> = ({ hideSearchBox = false }) => {
   return (
     <div className="bg-white border border-gray-200 rounded-xl shadow p-6">
       <InstantSearch indexName={ALGOLIA_INDEX_NAME} searchClient={searchClient}>
-        {/* Champ de recherche */}
-        <div className="mb-6">
-          <SearchBox
-            translations={{ placeholder: 'Rechercher un produit éthique…' }}
-            className="ais-SearchBox w-full"
-          />
-        </div>
+        {/* SearchBox visible seulement si hideSearchBox === false */}
+        {!hideSearchBox && (
+          <div className="mb-6">
+            <SearchBox
+              translations={{ placeholder: 'Rechercher un produit éthique…' }}
+              className="ais-SearchBox w-full"
+            />
+          </div>
+        )}
 
-        {/* Layout principal */}
         <div className="flex flex-col md:flex-row gap-6">
           {/* Filtres */}
           <aside className="md:w-72">
@@ -57,20 +67,17 @@ const SearchExperience: React.FC = () => {
           {/* Résultats */}
           <main className="flex-1">
             <Stats className="mb-4" />
-
             <ResultsWrapper>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                <Hits hitComponent={ProductHit} />
+              <Hits hitComponent={ProductHit} />
+              <div className="mt-6">
+                <Pagination />
               </div>
             </ResultsWrapper>
-
-            <div className="mt-6">
-              <Pagination />
-            </div>
           </main>
         </div>
 
-        <Configure hitsPerPage={9} />
+        {/* Configuration globale : 12 résultats / page */}
+        <Configure hitsPerPage={12} />
       </InstantSearch>
     </div>
   );

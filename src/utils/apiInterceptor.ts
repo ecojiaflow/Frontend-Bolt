@@ -19,6 +19,7 @@ export class APIInterceptor {
     window.fetch = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
       const url = typeof input === 'string' ? input : input.toString();
       
+<<<<<<< HEAD
       // 🚨 TRAQUER TOUTES LES REQUÊTES UNDEFINED
       const hasUndefined = url.includes('/undefined') || 
                           url.includes('undefined') || 
@@ -47,6 +48,25 @@ export class APIInterceptor {
           JSON.stringify({ 
             error: 'Invalid product identifier',
             message: 'Product not found',
+=======
+      // 🚨 BLOQUER TOUTES LES REQUÊTES AVEC 'undefined' (SÉCURITÉ CRITIQUE)
+      if (url.includes('/products/undefined') || url.includes('undefined')) {
+        // Log d'erreur critique en production
+        console.error('🚨 SECURITY: Blocked undefined URL request:', {
+          url,
+          timestamp: new Date().toISOString()
+        });
+        
+        // Rediriger vers l'accueil pour éviter les erreurs
+        setTimeout(() => {
+          window.location.href = '/';
+        }, 100);
+        
+        // Retourner une réponse d'erreur propre
+        return new Response(
+          JSON.stringify({ 
+            error: 'Invalid URL parameter',
+>>>>>>> bbcae51aff3a32786affc8ec31d4b27d38700afc
             redirect: true
           }),
           { 
@@ -54,6 +74,7 @@ export class APIInterceptor {
             statusText: 'Bad Request',
             headers: { 'Content-Type': 'application/json' }
           }
+<<<<<<< HEAD
         ));
       }
 
@@ -63,6 +84,16 @@ export class APIInterceptor {
           endpoint: url.split('/').slice(-2).join('/'),
           method: init?.method || 'GET',
           timestamp: Date.now()
+=======
+        );
+      }
+
+      // 🔍 Log minimal des requêtes API en développement uniquement
+      if (import.meta.env.DEV && url.includes('/api/')) {
+        console.log('📡 API Request:', {
+          url: url.split('/').pop(), // Juste le endpoint
+          method: init?.method || 'GET'
+>>>>>>> bbcae51aff3a32786affc8ec31d4b27d38700afc
         });
       }
 
